@@ -78,7 +78,8 @@ def results_markdown() -> str:
     rows = []
     for label, base, new in [("Có dấu", "dense|có dấu", "v3|có dấu"),
                              ("Không dấu", "dense|không dấu – thô", "v3|không dấu – khôi phục"),
-                             ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa")]:
+                             ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa"),
+             ("Teencode + không dấu", "dense|teencode + không dấu – thô", "v3|teencode + không dấu – xử lý")]:
         b, v = r[base], r[new]
         rows.append(f"| {label} | {_pct(b['R@1'])} → **{_pct(v['R@1'])}** | {_pct(b['R@5'])} → **{_pct(v['R@5'])}** "
                     f"| {_pct(b['MRR@10'])} → **{_pct(v['MRR@10'])}** |")

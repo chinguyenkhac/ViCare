@@ -54,7 +54,8 @@ def build(artifact_dir=None):
     # ---------------- bảng kết quả
     conds = [("Có dấu", "dense|có dấu", "v3|có dấu"),
              ("Không dấu", "dense|không dấu – thô", "v3|không dấu – khôi phục"),
-             ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa")]
+             ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa"),
+             ("Teencode + không dấu", "dense|teencode + không dấu – thô", "v3|teencode + không dấu – xử lý")]
     ret_rows = "".join(
         f"<tr><th scope='row'>{n}</th>" + "".join(
             f"<td><span class='old'>{pct(r[b][k])}</span> → <strong>{pct(r[v][k])}</strong></td>"
@@ -322,7 +323,7 @@ BODY = r"""<header class="top"><div class="wrap">
 
 <script>
 const DATA = __DATA__;
-const SPECIAL = new Set(["oos","inject","dose","emerg","followup"]);
+const SPECIAL = new Set(["oos","inject","dose","falseref","emerg","followup"]);
 const TIER = {"Cao":0,"Trung bình":1,"Thấp":2};
 const STATUS = {answered:"Đã trả lời",low_confidence:"Độ tin cậy thấp: chỉ hiện nguồn",refused_oos:"Từ chối: ngoài phạm vi",dose_blocked:"Chặn hỏi liều"};
 let cur = {g: DATA.order[0], v: 0};

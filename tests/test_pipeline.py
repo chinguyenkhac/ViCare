@@ -46,3 +46,11 @@ def test_answer_has_confidence_evidence_sources(chunks, embedder):
 def test_followup():
     assert is_followup("Vậy trường hợp này có nguy hiểm không?")
     assert not is_followup("Con tôi bị sốt thế nào thì cần đi viện?")
+
+
+def test_teencode_plus_unaccented_is_restored():
+    from vicare_safe.pipeline import preprocess_query
+    restorer = DiacriticRestorer().fit(["con tôi bị sốt cao co giật phải làm gì"] * 3)
+    q, normalized, restored = preprocess_query("con toi bi sot cao co giat phai lm j", restorer)
+    assert normalized and restored
+    assert q == "con tôi bị sốt cao co giật phải làm gì"

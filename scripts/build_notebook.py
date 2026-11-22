@@ -135,18 +135,15 @@ md(r"""
 | `không dấu – khôi phục` | bỏ dấu → **khôi phục dấu** (P0.1) |
 | `teencode – thô` | teencode hóa, đưa thẳng vào hệ thống |
 | `teencode – chuẩn hóa` | teencode hóa → **chuẩn hóa** (P0.2) |
+| `teencode + không dấu – thô / xử lý` | teencode hóa rồi bỏ dấu – kiểu gõ cẩu thả thực tế nhất; bản xử lý = chuẩn hóa + khôi phục dấu |
 """)
 code(r"""
 from vicare_safe.metrics import first_gold_rank, retrieval_summary, hits_at, bootstrap_ci, mcnemar_p
 from vicare_safe.confidence import features
 
-def process(q):          # cùng bước tiền xử lý với pipeline: teencode → khôi phục dấu
-    from vicare_safe.diacritics import needs_restoration
-    s, norm = normalize_teencode(q)
-    rest = False
-    if needs_restoration(s):
-        r = restorer.restore(s); rest = r != s; s = r
-    return s, norm, rest
+from vicare_safe.pipeline import preprocess_query
+def process(q):          # đúng bước tiền xử lý của pipeline: teencode → khôi phục dấu
+    return preprocess_query(q, restorer)
 
 VARIANTS = {
     "có dấu":               [(q["question"], False, False) for q in dev],
@@ -154,6 +151,8 @@ VARIANTS = {
     "không dấu – khôi phục": [process(fold(q["question"])) for q in dev],
     "teencode – thô":       [(t["question"], False, False) for t in dev_teen],
     "teencode – chuẩn hóa": [process(t["question"]) for t in dev_teen],
+    "teencode + không dấu – thô": [(fold(t["question"]), False, False) for t in dev_teen],
+    "teencode + không dấu – xử lý": [process(fold(t["question"])) for t in dev_teen],
 }
 
 def run(items, gold_sets, method):
@@ -169,7 +168,7 @@ gold_dev = [set(q["gold_doc_ids"]) for q in dev]
 runs, latency = {}, {}
 for name, items in VARIANTS.items():
     for method in ("dense", "v3"):
-        if method == "dense" and name.endswith(("khôi phục", "chuẩn hóa")):
+        if method == "dense" and name.endswith(("khôi phục", "chuẩn hóa", "xử lý")):
             continue
         runs[(method, name)], latency[(method, name)] = run(items, gold_dev, method)
         r = retrieval_summary([x["rank"] for x in runs[(method, name)]])
@@ -184,7 +183,7 @@ display(table.style.format("{:.1%}"))
 print("Recall@5 – CI 95% và McNemar so với baseline cùng điều kiện gõ:")
 significance = {}
 for name in VARIANTS:
-    base_name = name.replace(" – khôi phục", " – thô").replace(" – chuẩn hóa", " – thô")
+    base_name = name.replace(" – khôi phục", " – thô").replace(" – chuẩn hóa", " – thô").replace(" – xử lý", " – thô")
     b = hits_at([x["rank"] for x in runs[("dense", base_name)]], 5)
     v = hits_at([x["rank"] for x in runs[("v3", name)]], 5)
     lo, hi = bootstrap_ci(v); p, lose, win = mcnemar_p(b, v)
@@ -324,9 +323,11 @@ summary = {
 conf.save(ROOT / "artifacts/confidence.json", tau=TAU, n_cand=N_CAND, rerank_max_len=RERANK_MAX_LEN)
 
 head = []
-for n in ["có dấu", "không dấu – thô", "teencode – thô"]:
-    b = r5("dense", n); v = r5("v3", n if n == "có dấu" else n.replace("thô", "khôi phục" if "dấu" in n else "chuẩn hóa"))
-    head.append({"Điều kiện gõ": n.replace(" – thô", ""), "Baseline R@1": b["R@1"], "v3 R@1": v["R@1"],
+for label, base, new in [("có dấu", "có dấu", "có dấu"), ("không dấu", "không dấu – thô", "không dấu – khôi phục"),
+                         ("teencode", "teencode – thô", "teencode – chuẩn hóa"),
+                         ("teencode + không dấu", "teencode + không dấu – thô", "teencode + không dấu – xử lý")]:
+    b, v = r5("dense", base), r5("v3", new)
+    head.append({"Điều kiện gõ": label, "Baseline R@1": b["R@1"], "v3 R@1": v["R@1"],
                  "Baseline R@5": b["R@5"], "v3 R@5": v["R@5"], "Baseline MRR": b["MRR@10"], "v3 MRR": v["MRR@10"]})
 display(pd.DataFrame(head).set_index("Điều kiện gõ").style.format("{:.1%}"))
 print("✅ Đã lưu reports/metrics.json và artifacts/confidence.json")

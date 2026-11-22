@@ -129,10 +129,16 @@ class DiacriticRestorer:
         return "".join(tokens)
 
 
-def needs_restoration(text: str, min_words: int = 2) -> bool:
-    """Câu có ít nhất `min_words` âm tiết chữ và không có ký tự nào mang dấu tiếng Việt."""
-    words = [w for w in _WORD.findall(text) if not w.isdigit()]
-    return len(words) >= min_words and not has_diacritics(text)
+def accented_fraction(text: str) -> tuple[float, int]:
+    """(tỷ lệ âm tiết chữ có dấu, số âm tiết chữ). Câu hỏi thật có dấu trong ViHealthQA: thấp nhất 0,30, trung vị 0,86."""
+    words = [w for w in _WORD.findall(nfc(text)) if re.search(r"[^\W\d_]", w)]
+    return (sum(has_diacritics(w) for w in words) / len(words) if words else 0.0), len(words)
+
+
+def needs_restoration(text: str, min_words: int = 2, max_accented: float = 0.25) -> bool:
+    """Câu cần khôi phục dấu: có ≥ min_words âm tiết chữ và ≤ 25% âm tiết mang dấu (gõ không dấu hoặc gõ lẫn)."""
+    frac, n = accented_fraction(text)
+    return n >= min_words and frac <= max_accented
 
 
 def syllable_accuracy(restorer: DiacriticRestorer, sentences: list[str]) -> dict:

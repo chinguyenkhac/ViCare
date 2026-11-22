@@ -20,7 +20,8 @@ def render(m: dict) -> str:
     rows = []
     for name, b, v in [("Có dấu", "dense|có dấu", "v3|có dấu"),
                        ("Không dấu", "dense|không dấu – thô", "v3|không dấu – khôi phục"),
-                       ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa")]:
+                       ("Teencode", "dense|teencode – thô", "v3|teencode – chuẩn hóa"),
+                       ("Teencode + không dấu", "dense|teencode + không dấu – thô", "v3|teencode + không dấu – xử lý")]:
         rows.append(f"| {name} | " + " | ".join(f"{pct(r[b][k])} → **{pct(r[v][k])}**"
                                                  for k in ("R@1", "R@5", "R@10", "MRR@10")) + " |")
     rel = "\n".join(f"| {x['level']} | {x['n']:.0f} | {pct(x['mean_conf'])} | **{pct(x['actual_acc'])}** |"

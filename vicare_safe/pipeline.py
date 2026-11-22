@@ -24,6 +24,22 @@ def build_restorer(kb, question_weight: int = 3) -> DiacriticRestorer:
     return DiacriticRestorer().fit([d["text"] for d in kb.corpus] + train_q * question_weight)
 
 
+def preprocess_query(text: str, restorer: DiacriticRestorer) -> tuple[str, bool, bool]:
+    """Teencode → dạng chuẩn, rồi khôi phục dấu. Trả về (câu đã xử lý, đã chuẩn hóa?, đã khôi phục dấu?).
+
+    Quyết định khôi phục dựa trên câu GỐC người dùng gõ: bước chuẩn hóa chèn chữ có dấu ('lm j' → 'làm gì'),
+    nếu xét câu sau chuẩn hóa thì câu gõ lẫn teencode + không dấu sẽ bị bỏ qua (lỗi đã gặp khi chạy ví dụ).
+    """
+    original = str(text).strip()
+    q, normalized = normalize_teencode(original)
+    restored = False
+    if needs_restoration(original) or needs_restoration(q):
+        r = restorer.restore(q)
+        restored = r != q
+        q = r
+    return q, normalized, restored
+
+
 def is_followup(question: str) -> bool:
     f = fold(question).strip()
     return len(f.split()) <= 6 or f.startswith(FOLLOWUP_START) or match_any(f, FOLLOWUP_ANY)
@@ -62,13 +78,7 @@ class ViCareSafe:
 
     # ------------------------------------------------------------------ hiểu câu hỏi
     def preprocess(self, text: str) -> tuple[str, bool, bool]:
-        q, normalized = normalize_teencode(str(text).strip())
-        restored = False
-        if needs_restoration(q):
-            r = self.restorer.restore(q)
-            restored = r != q
-            q = r
-        return q, normalized, restored
+        return preprocess_query(text, self.restorer)
 
     def understand(self, question: str, history: list[str] | None = None) -> Understood:
         q, normalized, restored = self.preprocess(question)

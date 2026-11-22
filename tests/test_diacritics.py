@@ -28,6 +28,8 @@ def test_needs_restoration():
     assert needs_restoration("bi dau bung")
     assert not needs_restoration("bị đau bụng")
     assert not needs_restoration("123")
+    assert needs_restoration("con tôi bi sot cao co giat")            # gõ lẫn: 1/7 âm tiết có dấu
+    assert not needs_restoration("Con tôi bị sốt cao co giật")         # câu bình thường vẫn có âm tiết không dấu
 
 
 def test_accuracy_metric():
