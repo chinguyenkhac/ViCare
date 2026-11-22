@@ -67,29 +67,32 @@ Cùng kho tài liệu (9.895 tài liệu, 11.227 chunk) và **cùng 100 câu dev
 | Cách gõ | Recall@1 | Recall@5 | Recall@10 | MRR@10 |
 |---|---|---|---|---|
 | Có dấu | 37% → **44%** | 50% → **57%** | 55% → **57%** | 43% → **49%** |
-| Không dấu | 0% → **44%** | 3% → **54%** | 8% → **56%** | 2% → **48%** |
+| Không dấu | 0% → **45%** | 3% → **54%** | 8% → **56%** | 2% → **49%** |
 | Teencode | 39% → **44%** | 44% → **57%** | 51% → **57%** | 42% → **49%** |
+| Teencode + không dấu | 0% → **44%** | 3% → **54%** | 7% → **56%** | 1% → **48%** |
 
 **Khôi phục dấu:** 97.5% âm tiết đúng, 71% câu đúng hoàn toàn trên 100 câu dev
 (không dùng câu dev để học).
 
-**Độ tin cậy có nói thật không?** (gộp mọi biến thể dev, các câu không bị từ chối; ECE = 0.129, AUROC = 0.77)
+**Độ tin cậy có nói thật không?** (gộp mọi biến thể dev, các câu không bị từ chối; ECE = 0.119, AUROC = 0.78)
 
 | Mức ViCare tự báo | Số câu | Độ tin cậy dự đoán TB | Tỷ lệ tìm đúng thực tế |
 |---|---|---|---|
-| Cao | 129 | 83% | **79%** |
-| Trung bình | 104 | 56% | **59%** |
-| Thấp | 102 | 30% | **26%** |
+| Cao | 162 | 83% | **79%** |
+| Trung bình | 131 | 57% | **61%** |
+| Thấp | 141 | 31% | **26%** |
 
 **ViCare quyết định thế nào?** (cổng ngoài phạm vi τ = 0.82, chọn trên tập tune để từ chối ≥ 95% câu ngoài phạm vi)
 
 | Bộ câu hỏi | Cao | Trung bình | Thấp | Từ chối |
 |---|---|---|---|---|
-| có dấu | 32% | 30% | 20% | 18% |
+| có dấu | 31% | 30% | 21% | 18% |
 | không dấu – thô | 8% | 1% | 11% | 80% |
-| không dấu – khôi phục | 29% | 24% | 25% | 22% |
-| teencode – thô | 28% | 20% | 25% | 27% |
-| teencode – chuẩn hóa | 32% | 29% | 21% | 18% |
+| không dấu – khôi phục | 29% | 24% | 26% | 21% |
+| teencode – thô | 27% | 21% | 25% | 27% |
+| teencode – chuẩn hóa | 31% | 29% | 22% | 18% |
+| teencode + không dấu – thô | 7% | 2% | 10% | 81% |
+| teencode + không dấu – xử lý | 29% | 24% | 26% | 21% |
 | ngoài phạm vi (có dấu) | 0% | 0% | 0% | 100% |
 | ngoài phạm vi (không dấu) | 0% | 0% | 0% | 100% |
 
@@ -105,11 +108,14 @@ Cùng kho tài liệu (9.895 tài liệu, 11.227 chunk) và **cùng 100 câu dev
 
 **Đọc kết quả thế nào?**
 
-- **Cải tiến lớn nhất là câu không dấu:** Recall@5 từ 3% lên **54%** (McNemar p < 0,0001), tỷ lệ bị từ chối từ 80% xuống **22%**.
+- **Cải tiến lớn nhất là câu không dấu:** Recall@5 từ 3% lên **54%** (McNemar p < 0,0001), tỷ lệ bị từ chối từ 80% xuống **21%**.
   Khôi phục dấu thêm +10 điểm Recall@5 so với chỉ dùng hybrid trên chữ không dấu (44% → 54%).
+- **Gõ teencode + không dấu** (cẩu thả nhất, ví dụ "con toi bi sot thi phai lm j"): Recall@5 3% → **54%**, từ chối 81% → **21%** –
+  ngang hẳn câu gõ chuẩn.
 - **Câu có dấu:** Recall@1 37% → 44%, Recall@5 50% → 57% – tăng nhưng **chưa có ý nghĩa thống kê** với 100 câu (p = 0,09).
-- **Teencode:** chuẩn hóa không làm Recall tăng thêm so với để nguyên (57% so với 59%, trong sai số), vì BM25 bỏ dấu + reranker
-  vốn đã chịu được các viết tắt hư từ ("ko", "dc"). Giá trị của bước này là minh bạch: ViCare cho người dùng thấy nó hiểu câu hỏi thế nào.
+- **Teencode (giữ dấu):** chuẩn hóa không làm Recall tăng thêm so với để nguyên (57% so với 59%, trong sai số) vì BM25 bỏ dấu +
+  reranker vốn chịu được viết tắt hư từ ("ko", "dc"); giá trị của bước này là minh bạch ("ViCare hiểu câu hỏi là…") và là điều kiện
+  để khôi phục dấu đúng khi người dùng gõ lẫn.
 - **Độ tin cậy khớp thực tế theo từng mức:** khi báo *Cao*, tài liệu đúng nằm trong 3 nguồn ở 79% trường hợp (dự đoán 83%);
   *Thấp* chỉ 26% – đúng lúc nên chỉ hiện nguồn thay vì trả lời.
 - **Cái giá của sự thận trọng:** cổng ngoài phạm vi vẫn từ chối 18% câu dev có đáp án, đổi lại từ chối 100% câu ngoài phạm vi.
