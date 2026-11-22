@@ -34,3 +34,9 @@ def test_accuracy_metric():
     r = DiacriticRestorer().fit(TRAIN)
     acc = syllable_accuracy(r, ["Con tôi bị sốt cao co giật"])
     assert acc["syllable_acc"] == 1.0 and acc["sentence_exact"] == 1.0
+
+
+def test_bigram_and_trigram_agree_on_easy_sentence():
+    for order in (2, 3):
+        r = DiacriticRestorer(order=order).fit(TRAIN)
+        assert r.restore("con toi bi sot cao co giat") == "con tôi bị sốt cao co giật"

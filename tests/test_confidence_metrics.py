@@ -6,7 +6,7 @@ from vicare_safe.metrics import auroc, bootstrap_ci, ece, mcnemar_p, retrieval_s
 
 def test_logistic_learns_separable_signal():
     rng = np.random.default_rng(0)
-    x_pos = rng.normal(2, 0.5, (100, 8)); x_neg = rng.normal(-2, 0.5, (100, 8))
+    x_pos = rng.normal(2, 0.5, (100, 7)); x_neg = rng.normal(-2, 0.5, (100, 7))
     X = np.vstack([x_pos, x_neg]); y = np.r_[np.ones(100), np.zeros(100)]
     m = ConfidenceModel().fit(X, y)
     p = m.predict_proba(X)
@@ -16,7 +16,7 @@ def test_logistic_learns_separable_signal():
 def test_features_shape():
     hits = [{"score": 0.9, "dense_rank": 1, "bm25_rank": 2, "dense_cos": 0.88}, {"score": 0.3}]
     f = features(hits, "bé bị sốt", restored=True)
-    assert len(f) == 8 and f[3] == 1.0 and f[5] == 1.0
+    assert len(f) == 7 and f[3] == 1.0 and f[5] == 1.0
 
 
 def test_levels():
@@ -34,3 +34,14 @@ def test_threshold_and_metrics():
     assert (a_only, b_only) == (1, 2) and 0 < p <= 1
     lo, hi = bootstrap_ci([1, 0, 1, 1])
     assert 0 <= lo <= hi <= 1
+
+
+def test_constant_feature_does_not_explode():
+    """Cờ luôn bằng 0 khi huấn luyện không được kéo xác suất về 0 khi bằng 1 lúc dự đoán."""
+    rng = np.random.default_rng(1)
+    X = rng.normal(0, 1, (200, 7)); X[:, 5] = 0.0
+    y = (X[:, 0] > 0).astype(float)
+    m = ConfidenceModel().fit(X, y)
+    a, b = X[:5].copy(), X[:5].copy()
+    b[:, 5] = 1.0
+    assert np.allclose(m.predict_proba(a), m.predict_proba(b), atol=1e-6)

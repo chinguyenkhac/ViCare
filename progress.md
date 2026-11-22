@@ -74,8 +74,8 @@ câu hỏi (+ lịch sử)
 
 ### P0.3 Độ tin cậy
 - Nhãn huấn luyện: `1` nếu tài liệu gốc nằm trong **3 nguồn đầu** (đúng những gì người dùng nhìn thấy); câu ngoài phạm vi = `0`.
-- Đặc trưng: điểm reranker top-1, khoảng cách top-1/top-2, độ đồng thuận BM25–vector, cosine vector top-1, cờ đã khôi phục dấu / đã chuẩn hóa teencode, độ dài câu.
-- Mô hình: hồi quy logistic (numpy), huấn luyện trên **tập tune (câu train)**, đánh giá trên **dev + biến thể + OOS_TEST**.
+- Đặc trưng (7): điểm reranker top-1, khoảng cách top-1/top-2, trung bình top-3, độ đồng thuận BM25–vector, cosine vector top-1, cờ đã khôi phục dấu, độ dài câu. (Bỏ cờ teencode – xem nhật ký 14:20.)
+- Mô hình: hồi quy logistic (numpy), huấn luyện trên **tập tune (200 câu train + bản không dấu + 30 câu ngoài phạm vi)**, đánh giá trên **dev + biến thể + OOS_TEST**.
 - Mức: Cao (p ≥ 0,7) · Trung bình (0,4 ≤ p < 0,7) · Thấp (p < 0,4).
 - **Đo:** độ chính xác thực tế theo từng mức ("khi báo Cao thì đúng X%"), ECE, Brier, AUROC.
 - **Lưu ý trình bày:** độ tin cậy = độ tin *tài liệu khớp câu hỏi*, không phải độ đúng y khoa.
@@ -159,3 +159,6 @@ tests/            pytest
 - 13:20 – Test giao diện Gradio 6 bằng pipeline giả lập: OK.
 - 13:22 – API bật GitHub Pages bị proxy chặn → cần bật tay 1 lần (Settings → Pages → `main` / `/docs`). Trang demo tĩnh sẽ xuất bản thêm dạng Artifact trên claude.ai để xem được ngay.
 - 13:25 – Thiết kế lại trang demo (phong cách phiếu xét nghiệm, màu phân loại cho độ tin cậy, sáng/tối, điện thoại không tràn ngang); sửa định dạng danh sách trích dẫn/nguồn.
+- 14:09 – Notebook đánh giá chạy xong lần 1 (57 phút trên CPU). Phát hiện **lỗi độ tin cậy**: cờ "đã chuẩn hóa teencode" luôn = 0 khi huấn luyện → độ lệch chuẩn ≈ 0 → lúc dự đoán bị phóng đại, kéo 65% câu teencode xuống mức Thấp. Đã sửa (sd = 1 cho đặc trưng hằng) + thêm test.
+- 14:12 – Nâng khôi phục dấu lên **trigram** (Viterbi bậc 2): trên 400 câu validation ngoài dev, câu đúng hoàn toàn 71,3% → 74,8%; sửa được "con toi 2 tuoi" → "con tôi 2 tuổi". Chạy lại notebook (điểm reranker đã cache).
+- 14:20 – Lỗi teencode chưa hết: vài câu train bỏ dấu tình cờ có token như "dk" nên cờ teencode không hằng tuyệt đối → vẫn bị phóng đại. Bỏ hẳn đặc trưng này (không có dữ liệu học). Tăng tập tune lên 200 câu để hiệu chỉnh độ tin cậy tốt hơn; chạy lại notebook.

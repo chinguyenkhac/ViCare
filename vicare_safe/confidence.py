@@ -13,14 +13,17 @@ import numpy as np
 
 from .text import syllables
 
+# Không dùng cờ "đã chuẩn hóa teencode": tập huấn luyện (câu train) gần như không có teencode nên mô hình không học
+# được tín hiệu đó; một đặc trưng nhị phân hiếm còn bị chuẩn hóa phóng đại khi dự đoán (lỗi đã gặp ở lần chạy đầu).
 FEATURES = ["rerank_top1", "rerank_margin", "rerank_top3_mean", "agree_bm25_dense", "dense_cos_top1",
-            "restored", "normalized", "log_len"]
+            "restored", "log_len"]
 
 LEVEL_HIGH, LEVEL_MID = 0.70, 0.40
 LEVELS = ("Cao", "Trung bình", "Thấp")
 
 
 def features(hits: list[dict], query: str, restored: bool = False, normalized: bool = False) -> list[float]:
+    """Vector đặc trưng theo FEATURES (`normalized` được nhận để tương thích nhưng không dùng)."""
     s = [h["score"] for h in hits] + [0.0, 0.0, 0.0]
     top = hits[0] if hits else {}
     d_rank, b_rank = top.get("dense_rank") or 99, top.get("bm25_rank") or 99
@@ -31,7 +34,6 @@ def features(hits: list[dict], query: str, restored: bool = False, normalized: b
         1.0 if (d_rank <= 5 and b_rank <= 5) else 0.0,
         float(top.get("dense_cos", 0.0)),
         float(restored),
-        float(normalized),
         math.log1p(len(syllables(query))),
     ]
 
@@ -55,7 +57,10 @@ class ConfidenceModel:
     def fit(self, X, y, iters: int = 50) -> "ConfidenceModel":
         """Hồi quy logistic có L2, tối ưu bằng Newton (IRLS) – vài trăm mẫu, hội tụ tức thì."""
         X, y = np.asarray(X, float), np.asarray(y, float)
-        self.mu, self.sd = X.mean(0), X.std(0) + 1e-6
+        self.mu, self.sd = X.mean(0), X.std(0)
+        # Đặc trưng không đổi trong tập huấn luyện (ví dụ cờ teencode khi tune không có teencode):
+        # giữ sd = 1 để giá trị mới lúc dự đoán không bị chia cho ~0 và phóng đại vô hạn.
+        self.sd[self.sd < 1e-6] = 1.0
         A = self._x(X)
         w = np.zeros(A.shape[1])
         reg = np.eye(len(w)) * self.l2

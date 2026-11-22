@@ -36,20 +36,20 @@ kèm **độ tin cậy**, **bằng chứng [n]**, **nguồn** và **bước ti�
 ```text
 câu hỏi (+ lịch sử)
   ├─ [an toàn]     cấp cứu (có dấu & không dấu) → banner 115 · hỏi liều / kê đơn → không đưa liều
-  ├─ [chuẩn hóa]   teencode "ko, j, dc, bs" → dạng chuẩn · không dấu → KHÔI PHỤC DẤU (n-gram + Viterbi)
+  ├─ [chuẩn hóa]   teencode "ko, j, dc, bs" → dạng chuẩn · không dấu → KHÔI PHỤC DẤU (trigram + Viterbi)
   ├─ [ngữ cảnh]    câu nối tiếp ("Vậy…") → ghép với câu trước
   ├─ [truy xuất]   BM25 (bỏ dấu, bigram âm tiết) + vector e5 → RRF → reranker bge-reranker-v2-m3
   ├─ [cổng]        điểm reranker < τ → từ chối (câu ngoài phạm vi)
-  ├─ [độ tin cậy]  hồi quy logistic trên 8 tín hiệu → 🟢 Cao · 🟡 Trung bình · 🔴 Thấp (không trả lời, chỉ hiện nguồn)
+  ├─ [độ tin cậy]  hồi quy logistic trên 7 tín hiệu → 🟢 Cao · 🟡 Trung bình · 🔴 Thấp (không trả lời, chỉ hiện nguồn)
   ├─ [bằng chứng]  chấm từng câu trong tài liệu → trích câu liên quan nhất kèm [n]
   └─ ĐẦU RA        câu hỏi đã hiểu · độ tin cậy · thông tin tham khảo [n] · bước tiếp theo · nguồn · cảnh báo
 ```
 
 | Cải tiến | Cách làm | Vì sao chọn cách này |
 |---|---|---|
-| **Khôi phục dấu** | Học unigram/bigram âm tiết có dấu từ chính kho tài liệu + câu hỏi tập train, giải mã Viterbi | Không cần GPU/LLM, < 1 ms/câu, đúng văn phong y tế; giữ nguyên âm tiết người dùng đã gõ dấu |
+| **Khôi phục dấu** | Học unigram/bigram/trigram âm tiết có dấu từ chính kho tài liệu + câu hỏi tập train, giải mã Viterbi bậc 2 | Không cần GPU/LLM, ~2 ms/câu, đúng văn phong y tế; giữ nguyên âm tiết người dùng đã gõ dấu. Trigram hơn bigram trên 400 câu validation ngoài dev: 74,8% so với 71,3% câu đúng hoàn toàn |
 | **Chuẩn hóa teencode** | Từ điển có ranh giới từ + luật chống nhầm | Tránh lỗi kiểu "vitamin K" → "vitamin không", "ng/mL" → "người/mL", "viêm gan C" |
-| **Độ tin cậy** | Logistic regression (numpy) trên điểm reranker, khoảng cách top-1/top-2, đồng thuận BM25–vector, cờ khôi phục dấu… | Nhỏ, minh bạch, kiểm chứng được bằng bảng "khi báo Cao thì đúng bao nhiêu %" |
+| **Độ tin cậy** | Logistic regression (numpy) trên 7 tín hiệu: điểm reranker, khoảng cách top-1/top-2, đồng thuận BM25–vector, cờ khôi phục dấu… | Nhỏ, minh bạch, kiểm chứng được bằng bảng "khi báo Cao thì đúng bao nhiêu %" |
 | **Bằng chứng** | Cross-encoder chấm từng câu, bỏ câu chào hỏi | Người dùng tự kiểm chứng được – đúng tinh thần hỗ trợ quyết định |
 
 **Độ tin cậy nghĩa là gì?** Xác suất ước lượng rằng *tài liệu gốc trả lời câu hỏi nằm trong 3 nguồn hiển thị* – độ tin vào việc
@@ -64,7 +64,7 @@ câu hỏi (+ lịch sử)
 ```text
 vicare_safe/
   text.py         bỏ dấu, tách câu, chuẩn hóa teencode, ẩn thông tin cá nhân
-  diacritics.py   khôi phục dấu (n-gram âm tiết + Viterbi)
+  diacritics.py   khôi phục dấu (trigram âm tiết + Viterbi bậc 2)
   data.py         nạp ViHealthQA, dựng kho / dev / tune giống hệt notebook BTC
   retrieval.py    vector (numpy) · BM25 (ma trận thưa) · RRF · reranker có cache
   confidence.py   đặc trưng + hồi quy logistic + mức độ tin cậy
@@ -119,7 +119,7 @@ Space sẽ có tại `https://huggingface.co/spaces/<tên-tài-khoản>/ViCare-S
 
 1. **Đánh giá trong kho đã biết**: câu dev có đáp án nằm sẵn trong kho; chưa đo tổng quát hóa sang tài liệu mới.
 2. **Câu không dấu / teencode là tổng hợp** từ câu gốc (dữ liệu gốc: 0% câu không dấu, 0,6% có teencode).
-3. **Độ tin cậy** huấn luyện trên ~230 mẫu và chỉ phản ánh việc tìm đúng tài liệu.
+3. **Độ tin cậy** huấn luyện trên ~430 mẫu (câu train, chưa có câu teencode) và chỉ phản ánh việc tìm đúng tài liệu.
 4. **Gold duy nhất**: nhiều câu trả lời gần trùng (vaccine Covid…) nên Recall chặt có thể đánh giá thấp hệ thống.
 5. **Bộ câu cấp cứu / ngoài phạm vi tự viết, cỡ nhỏ** → kết quả an toàn lạc quan; phát hiện cấp cứu dựa trên từ khóa.
 6. **Dữ liệu cũ** (khoảng 2019–2022, ~20% tài liệu thuộc giai đoạn Covid-19).

@@ -297,9 +297,9 @@ BODY = r"""<header class="top"><div class="wrap">
   <ol class="steps">
     <li><b>Lớp an toàn</b><span>Nhận ra tình huống cấp cứu (có dấu lẫn không dấu) để nhắc gọi 115; chặn câu hỏi xin liều thuốc, kê đơn.</span></li>
     <li><b>Chuẩn hóa teencode</b><span>“ko, j, dc, bs, bv” thành dạng chuẩn, có luật tránh nhầm như vitamin K, viêm gan C, ng/mL.</span></li>
-    <li><b>Khôi phục dấu</b><span>Mô hình n-gram học từ chính kho tài liệu và giải mã Viterbi: “con toi bi sot” thành “con tôi bị sốt”, dưới 1 ms.</span></li>
+    <li><b>Khôi phục dấu</b><span>Mô hình trigram học từ chính kho tài liệu và giải mã Viterbi: “con toi bi sot” thành “con tôi bị sốt”, khoảng 2 ms.</span></li>
     <li><b>Truy xuất lai</b><span>BM25 trên chữ bỏ dấu cộng vector e5, gộp bằng RRF, rồi cross-encoder bge-reranker-v2-m3 xếp hạng lại.</span></li>
-    <li><b>Độ tin cậy</b><span>Hồi quy logistic trên 8 tín hiệu truy xuất, ước lượng khả năng tài liệu đúng nằm trong 3 nguồn hiển thị.</span></li>
+    <li><b>Độ tin cậy</b><span>Hồi quy logistic trên 7 tín hiệu truy xuất, ước lượng khả năng tài liệu đúng nằm trong 3 nguồn hiển thị.</span></li>
     <li><b>Bằng chứng và nguồn</b><span>Chấm từng câu trong tài liệu, trích nguyên văn câu liên quan nhất kèm số nguồn [n].</span></li>
   </ol>
 </div></section>

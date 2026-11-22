@@ -17,7 +17,7 @@ def _app(chunks, embedder, tau=0.3):
     retr = HybridRetriever(chunks, emb, embedder, reranker=FakeReranker(), n_each=4)
     restorer = DiacriticRestorer().fit([c["text"] for c in chunks] + ["con tôi bị sốt cao co giật"] * 3)
     conf = ConfidenceModel()
-    conf.mu, conf.sd, conf.w = np.zeros(8), np.ones(8), np.r_[0.0, 3.0, np.zeros(7)]
+    conf.mu, conf.sd, conf.w = np.zeros(7), np.ones(7), np.r_[0.0, 3.0, np.zeros(6)]
     return ViCareSafe(retr, restorer, conf, tau=tau, n_cand=4)
 
 

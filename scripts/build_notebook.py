@@ -24,7 +24,7 @@ Notebook này **đánh giá trước/sau** các cải tiến P0 trên cùng dữ
 
 | Cải tiến | Vấn đề thực tế | Đo bằng |
 |---|---|---|
-| **Khôi phục dấu** (n-gram + Viterbi, không LLM) | v2 tìm được tài liệu cho câu không dấu nhưng **từ chối nhầm 80%** vì reranker chấm thấp chữ không dấu | % âm tiết đúng, Recall@k, tỷ lệ bị từ chối |
+| **Khôi phục dấu** (trigram âm tiết + Viterbi, không LLM) | v2 tìm được tài liệu cho câu không dấu nhưng **từ chối nhầm 80%** vì reranker chấm thấp chữ không dấu | % âm tiết đúng, Recall@k, tỷ lệ bị từ chối |
 | **Chuẩn hóa teencode** | "ko", "j", "dc", "bs"… làm lệch truy xuất | Recall@k trên dev teencode |
 | **Độ tin cậy** (hồi quy logistic) | Một ngưỡng duy nhất chỉ có "trả lời" hoặc "từ chối" | Độ chính xác thực tế theo mức, ECE, AUROC |
 | **Trích đoạn bằng chứng** | Người dùng khó tự kiểm chứng | Ví dụ đầu ra |
@@ -56,7 +56,7 @@ code(r"""
 N_CAND = 10            # số ứng viên đưa vào reranker
 RERANK_MAX_LEN = 320
 OOS_TARGET = 0.95      # cổng: từ chối ≥95% câu ngoài phạm vi trên tập tune (thận trọng, như v2)
-N_TUNE = 100
+N_TUNE = 200          # câu train để chọn ngưỡng và huấn luyện độ tin cậy
 """)
 
 md("## 1. Dữ liệu – kho tài liệu và tập dev giống hệt BTC")
@@ -74,8 +74,8 @@ print(f"Câu ngoài phạm vi: tune {len(OOS_TUNE)} | test {len(OOS_TEST)}")
 md(r"""
 ## 2. P0.1 – Khôi phục dấu tiếng Việt
 
-Học tần suất âm tiết có dấu (unigram + bigram) từ kho tài liệu và câu hỏi tập train (văn phong người hỏi, nhân trọng số 3),
-rồi giải mã Viterbi. Âm tiết người dùng đã gõ dấu được giữ nguyên. **Không dùng câu hỏi dev/validation để học.**
+Học tần suất âm tiết có dấu (unigram + bigram + trigram) từ kho tài liệu và câu hỏi tập train (văn phong người hỏi, nhân trọng số 3),
+rồi giải mã Viterbi bậc 2. (Trên 400 câu validation *không thuộc* dev: trigram 97,9% âm tiết / 74,8% câu đúng; bigram 97,6% / 71,3%.) Âm tiết người dùng đã gõ dấu được giữ nguyên. **Không dùng câu hỏi dev/validation để học.**
 """)
 code(r"""
 from vicare_safe.pipeline import build_restorer
@@ -83,7 +83,7 @@ from vicare_safe.diacritics import syllable_accuracy
 
 t0 = time.time()
 restorer = build_restorer(kb)
-print(f"Học xong trong {time.time()-t0:.1f}s | {len(restorer.uni):,} âm tiết | {len(restorer.bi):,} bigram")
+print(f"Học xong trong {time.time()-t0:.1f}s | {len(restorer.uni):,} âm tiết | {len(restorer.bi):,} bigram | {len(restorer.tri):,} trigram")
 restoration = syllable_accuracy(restorer, [q["question"] for q in dev])
 print(f"Trên 100 câu dev: {restoration['syllable_acc']:.1%} âm tiết đúng | {restoration['sentence_exact']:.0%} câu đúng hoàn toàn")
 for q in dev[:6]:
@@ -182,19 +182,22 @@ table = pd.DataFrame({f"{'Baseline BTC (vector)' if m == 'dense' else 'ViCare-Sa
 display(table.style.format("{:.1%}"))
 
 print("Recall@5 – CI 95% và McNemar so với baseline cùng điều kiện gõ:")
+significance = {}
 for name in VARIANTS:
     base_name = name.replace(" – khôi phục", " – thô").replace(" – chuẩn hóa", " – thô")
     b = hits_at([x["rank"] for x in runs[("dense", base_name)]], 5)
     v = hits_at([x["rank"] for x in runs[("v3", name)]], 5)
     lo, hi = bootstrap_ci(v); p, lose, win = mcnemar_p(b, v)
     print(f"  {name:22} baseline {np.mean(b):.0%} → v3 {np.mean(v):.0%} [CI {lo:.0%}–{hi:.0%}] | thắng {win} / thua {lose} | p={p:.4f}")
+    significance[name] = {"baseline_R@5": float(np.mean(b)), "v3_R@5": float(np.mean(v)), "ci95": [lo, hi],
+                          "wins": win, "losses": lose, "mcnemar_p": p}
 """)
 
 md(r"""
 ## 6. P0.3 – Độ tin cậy
 
 1. **Cổng ngoài phạm vi (giữ từ v2):** điểm reranker top-1 < τ → từ chối. τ chọn trên tập tune để từ chối ≥ 95% câu ngoài phạm vi.
-2. **Độ tin cậy:** hồi quy logistic trên 8 tín hiệu (điểm reranker top-1, khoảng cách top-1/top-2, trung bình top-3, BM25 và vector cùng xếp tài liệu vào top-5, cosine vector, cờ khôi phục dấu / chuẩn hóa teencode, độ dài câu).
+2. **Độ tin cậy:** hồi quy logistic trên 7 tín hiệu (điểm reranker top-1, khoảng cách top-1/top-2, trung bình top-3, BM25 và vector cùng xếp tài liệu vào top-5, cosine vector, cờ khôi phục dấu, độ dài câu).
    Nhãn = 1 nếu tài liệu gốc nằm trong **3 nguồn hiển thị**; câu ngoài phạm vi = 0. Huấn luyện **chỉ trên tập tune (train)**.
 3. **Mức:** 🟢 Cao (≥ 70%) · 🟡 Trung bình (40–70%) · 🔴 Thấp (< 40% → không trả lời, chỉ hiện nguồn).
 """)
@@ -310,6 +313,7 @@ summary = {
     "decisions": {n: dist_df.loc[n].to_dict() for n in dist_df.index},
     "reliability": rel.reset_index().to_dict(orient="records"),
     "calibration": calib,
+    "significance_R@5": significance,
     "safety": safety,
     "tau": TAU,
     "config": {"N_CAND": N_CAND, "RERANK_MAX_LEN": RERANK_MAX_LEN, "OOS_TARGET": OOS_TARGET, "N_TUNE": N_TUNE},
@@ -333,7 +337,7 @@ md(r"""
 
 1. **Đánh giá trong kho đã biết:** câu dev có đáp án nằm sẵn trong kho; chưa đo khả năng tổng quát hóa sang tài liệu mới.
 2. **Biến thể không dấu / teencode là tổng hợp** (dữ liệu gốc: 0% câu không dấu, 0,6% có teencode) – người dùng thật có thể gõ sai chính tả theo cách khác.
-3. **Độ tin cậy** chỉ phản ánh việc *tìm đúng tài liệu*, không phải độ đúng y khoa; được huấn luyện trên ~230 mẫu nên còn thô.
+3. **Độ tin cậy** chỉ phản ánh việc *tìm đúng tài liệu*, không phải độ đúng y khoa; huấn luyện trên ~430 mẫu (câu train) nên còn thô, và chưa thấy câu teencode khi học.
 4. **Gold duy nhất:** nhiều câu trả lời gần trùng (đặc biệt về vaccine Covid) nên Recall chặt có thể đánh giá thấp hệ thống.
 5. **Bộ câu cấp cứu / ngoài phạm vi tự viết, cỡ nhỏ** → kết quả lạc quan; phát hiện cấp cứu dựa trên từ khóa.
 6. **Dữ liệu cũ** (khoảng 2019–2022; 20% tài liệu thuộc giai đoạn Covid-19) và chỉ dùng cho mục đích nghiên cứu.
