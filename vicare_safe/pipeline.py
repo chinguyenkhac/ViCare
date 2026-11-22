@@ -104,7 +104,7 @@ class ViCareSafe:
 
 # ---------------------------------------------------------------------- định dạng
 def _sources(hits: list[dict]) -> str:
-    return "\n".join(f"[{i}] {h['url'] if str(h['url']).startswith('http') else h['doc_id']}"
+    return "\n".join(f"- [{i}] {h['url'] if str(h['url']).startswith('http') else h['doc_id']}"
                      for i, h in enumerate(hits, 1))
 
 
@@ -121,7 +121,7 @@ def format_answer(a: Answer) -> str:
     if a.status == "dose_blocked":
         parts.append(DOSE_MSG)
         if a.hits:
-            parts.append("**📚 Tài liệu liên quan để đọc thêm:**\n" + _sources(a.hits))
+            parts.append("**📚 Tài liệu liên quan để đọc thêm:**\n\n" + _sources(a.hits))
     elif a.status == "refused_oos":
         parts.append(f"{REFUSAL}\n\n**➡️ Gợi ý:** câu hỏi có vẻ nằm ngoài phạm vi kho tài liệu sức khỏe; "
                      "hãy hỏi trực tiếp bác sĩ hoặc cơ sở y tế.")
@@ -130,15 +130,15 @@ def format_answer(a: Answer) -> str:
         parts.append(f"**📊 Độ tin cậy: {badge} {a.level} ({a.prob:.0%})** – *{CONF_NOTE}*")
         quotes = "\n".join(f"- «{e['sentence']}» [{e['source']}]" for e in a.evidence)
         if a.status == "answered":
-            parts.append("**📌 Thông tin tham khảo** *(trích nguyên văn từ tài liệu bác sĩ)*:\n" + (quotes or "- (xem nguồn)"))
+            parts.append("**📌 Thông tin tham khảo** *(trích nguyên văn từ tài liệu bác sĩ)*:\n\n" + (quotes or "- (xem nguồn)"))
             nxt = ("dùng thông tin này để chuẩn bị câu hỏi khi đi khám; không tự ý bắt đầu, ngừng hoặc đổi thuốc."
                    if a.level == "Cao" else
                    "độ tin cậy chưa cao – hãy đối chiếu các nguồn bên dưới và hỏi thêm nhân viên y tế.")
         else:
             parts.append("**🔴 Độ tin cậy THẤP – ViCare không đưa ra câu trả lời.** "
-                         "Các đoạn dưới đây *có thể* liên quan, hãy tự đọc kỹ nguồn:\n" + (quotes or "- (xem nguồn)"))
+                         "Các đoạn dưới đây *có thể* liên quan, hãy tự đọc kỹ nguồn:\n\n" + (quotes or "- (xem nguồn)"))
             nxt = "hỏi trực tiếp bác sĩ; có thể diễn đạt lại câu hỏi cụ thể hơn (triệu chứng, thời gian, tuổi)."
         parts.append(f"**➡️ Bước tiếp theo gợi ý:** {nxt}")
-        parts.append("**📚 Nguồn:**\n" + _sources(a.hits))
+        parts.append("**📚 Nguồn:**\n\n" + _sources(a.hits))
     parts.append(WARNING)
     return "\n\n".join(parts)
