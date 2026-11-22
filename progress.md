@@ -118,17 +118,19 @@ tests/            pytest
 
 ## 9. Checklist & trạng thái
 
-- [ ] Viết progress.md, dựng khung repo
-- [ ] `text.py`, `data.py` + tính embedding kho tài liệu (chạy nền)
-- [ ] P0.1 `diacritics.py` + test
-- [ ] P0.2 teencode + test
-- [ ] `retrieval.py` (vector numpy, BM25 sparse, RRF, reranker có cache) + test
-- [ ] P0.4 `evidence.py` + test
-- [ ] P0.3 `confidence.py` + test
-- [ ] `pipeline.py` (đầu ra hỗ trợ quyết định) + `safety.py` + test
-- [ ] CI GitHub Actions
+- [x] Viết progress.md, dựng khung repo
+- [x] `text.py`, `data.py` + tính embedding kho tài liệu (chạy nền)
+- [x] P0.1 `diacritics.py` + test
+- [x] P0.2 teencode + test
+- [x] `retrieval.py` (vector numpy, BM25 sparse, RRF, reranker có cache) + test
+- [x] P0.4 `evidence.py` + test
+- [x] P0.3 `confidence.py` + test
+- [x] `pipeline.py` (đầu ra hỗ trợ quyết định) + `safety.py` + test
+- [x] CI GitHub Actions
 - [ ] Notebook v3: chạy đánh giá, xuất HTML, `reports/metrics.json`
-- [ ] `app.py` + deploy Hugging Face Space
+- [x] `app.py` (đã test giao diện Gradio 6 qua HTTP)
+- [ ] Deploy Hugging Face Space – **chờ token** (form bị hủy; đã làm sẵn workflow tự deploy khi có secret `HF_TOKEN`)
+- [ ] Trang GitHub Pages (demo tĩnh "Thử như giám khảo" + báo cáo HTML)
 - [ ] README (kết quả, cách chạy, kiến trúc, hạn chế, trích dẫn)
 - [ ] Cập nhật progress.md lần cuối
 
@@ -149,3 +151,9 @@ tests/            pytest
 ## 12. Nhật ký
 
 - 13:02 – Chốt P0, viết progress.md.
+- 13:11 – Embedding 11.227 chunk xong (320 s, CPU) → `artifacts/` (float16, 8,6 MB).
+- 13:12 – Khôi phục dấu: **97,4% âm tiết đúng** trên 100 câu dev (0,6 ms/câu). 28 unit test qua.
+- 13:13 – BM25 viết lại bằng ma trận thưa khớp v2 (R@5 43%, R@10 51%); smoke test dữ liệu thật 11 s.
+- 13:16 – Push lần đầu lên `main`; **CI xanh** trên GitHub (unit test + smoke test dữ liệu thật).
+- 13:17 – Form token Hugging Face bị hủy (bạn đi ngủ) → không tự mở lại; chuyển sang deploy qua GitHub Actions + trang GitHub Pages.
+- 13:20 – Test giao diện Gradio 6 bằng pipeline giả lập: OK.

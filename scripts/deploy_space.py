@@ -4,6 +4,7 @@ Cần token Hugging Face quyền Write trong biến môi trường HF_TOKEN.
 Tùy chọn: HF_SPACE_ID (mặc định "<tên-tài-khoản>/ViCare-Safe").
 Chạy tay:  HF_TOKEN=hf_xxx python scripts/deploy_space.py   (hoặc tự động qua GitHub Actions)
 """
+import json
 import os
 import shutil
 import tempfile
@@ -66,7 +67,11 @@ def main() -> None:
         api.create_repo(space_id, repo_type="space", space_sdk="gradio", exist_ok=True)
         api.upload_folder(folder_path=str(tmp), repo_id=space_id, repo_type="space",
                           commit_message="Deploy ViCare-Safe from GitHub")
-    print(f"✅ Space: https://huggingface.co/spaces/{space_id}")
+    url = f"https://huggingface.co/spaces/{space_id}"
+    docs = ROOT / "docs"
+    if docs.exists():   # trang GitHub Pages đọc file này để bật nút "Mở demo trực tiếp"
+        (docs / "space.json").write_text(json.dumps({"url": url}))
+    print(f"✅ Space: {url}")
 
 
 if __name__ == "__main__":
