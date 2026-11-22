@@ -24,7 +24,7 @@ Phân tích notebook gốc trên **cùng 100 câu dev của BTC** cho thấy ba 
 
 | Vấn đề | Bằng chứng | Hậu quả với người dùng thật |
 |---|---|---|
-| Gõ **không dấu** là hỏng | Recall@5 của baseline chỉ còn **1%**; ở v2 (đã có hybrid + reranker) vẫn **từ chối nhầm 80%** câu không dấu | Người lớn tuổi, người đang vội gõ "con toi bi sot co giat" gần như không nhận được gì |
+| Gõ **không dấu** là hỏng | Recall@5 của baseline chỉ còn **3%**; ở v2 (đã có hybrid + reranker) vẫn **từ chối nhầm 80%** câu không dấu | Người lớn tuổi, người đang vội gõ "con toi bi sot co giat" gần như không nhận được gì |
 | **Cảnh báo cấp cứu** bỏ sót | Từ khóa có dấu không khớp câu không dấu: bắt được **0/20** ca cấp cứu gõ không dấu | Lỗi an toàn, không chỉ là lỗi chất lượng |
 | Chỉ có **trả lời / từ chối** | Một ngưỡng cosine cứng, không nói được "tôi chưa chắc" | Người dùng không biết khi nào nên tin, khi nào nên hỏi bác sĩ |
 
@@ -57,7 +57,62 @@ câu hỏi (+ lịch sử)
 
 ## 3. Kết quả
 
-<!-- RESULTS -->
+<!-- RESULTS:START -->
+Cùng kho tài liệu (9.895 tài liệu, 11.227 chunk) và **cùng 100 câu dev của notebook BTC**. Baseline = notebook gốc
+(tìm kiếm vector e5). Cấu hình giống demo CPU: reranker chấm 10 ứng viên. Biến thể *không dấu* và
+*teencode* được tạo tự động từ câu dev. Khoảng tin cậy 95% (bootstrap) và kiểm định McNemar: xem notebook, mục 5.
+
+**Tìm đúng tài liệu (baseline → ViCare-Safe v3)**
+
+| Cách gõ | Recall@1 | Recall@5 | Recall@10 | MRR@10 |
+|---|---|---|---|---|
+| Có dấu | 37% → **44%** | 50% → **57%** | 55% → **57%** | 43% → **49%** |
+| Không dấu | 0% → **44%** | 3% → **54%** | 8% → **56%** | 2% → **48%** |
+| Teencode | 39% → **44%** | 44% → **57%** | 51% → **57%** | 42% → **49%** |
+
+**Khôi phục dấu:** 97.5% âm tiết đúng, 71% câu đúng hoàn toàn trên 100 câu dev
+(không dùng câu dev để học).
+
+**Độ tin cậy có nói thật không?** (gộp mọi biến thể dev, các câu không bị từ chối; ECE = 0.129, AUROC = 0.77)
+
+| Mức ViCare tự báo | Số câu | Độ tin cậy dự đoán TB | Tỷ lệ tìm đúng thực tế |
+|---|---|---|---|
+| Cao | 129 | 83% | **79%** |
+| Trung bình | 104 | 56% | **59%** |
+| Thấp | 102 | 30% | **26%** |
+
+**ViCare quyết định thế nào?** (cổng ngoài phạm vi τ = 0.82, chọn trên tập tune để từ chối ≥ 95% câu ngoài phạm vi)
+
+| Bộ câu hỏi | Cao | Trung bình | Thấp | Từ chối |
+|---|---|---|---|---|
+| có dấu | 32% | 30% | 20% | 18% |
+| không dấu – thô | 8% | 1% | 11% | 80% |
+| không dấu – khôi phục | 29% | 24% | 25% | 22% |
+| teencode – thô | 28% | 20% | 25% | 27% |
+| teencode – chuẩn hóa | 32% | 29% | 21% | 18% |
+| ngoài phạm vi (có dấu) | 0% | 0% | 0% | 100% |
+| ngoài phạm vi (không dấu) | 0% | 0% | 0% | 100% |
+
+**An toàn** (bộ câu tự viết – kết quả lạc quan)
+
+| Kiểm tra | Baseline | ViCare-Safe |
+|---|---|---|
+| cấp cứu – có dấu | 45% | **100%** |
+| cấp cứu – không dấu | 0% | **100%** |
+| báo động giả | 0% | **0%** |
+| chặn hỏi liều / kê đơn | – | **100%** |
+<!-- RESULTS:END -->
+
+**Đọc kết quả thế nào?**
+
+- **Cải tiến lớn nhất là câu không dấu:** Recall@5 từ 3% lên **54%** (McNemar p < 0,0001), tỷ lệ bị từ chối từ 80% xuống **22%**.
+  Khôi phục dấu thêm +10 điểm Recall@5 so với chỉ dùng hybrid trên chữ không dấu (44% → 54%).
+- **Câu có dấu:** Recall@1 37% → 44%, Recall@5 50% → 57% – tăng nhưng **chưa có ý nghĩa thống kê** với 100 câu (p = 0,09).
+- **Teencode:** chuẩn hóa không làm Recall tăng thêm so với để nguyên (57% so với 59%, trong sai số), vì BM25 bỏ dấu + reranker
+  vốn đã chịu được các viết tắt hư từ ("ko", "dc"). Giá trị của bước này là minh bạch: ViCare cho người dùng thấy nó hiểu câu hỏi thế nào.
+- **Độ tin cậy khớp thực tế theo từng mức:** khi báo *Cao*, tài liệu đúng nằm trong 3 nguồn ở 79% trường hợp (dự đoán 83%);
+  *Thấp* chỉ 26% – đúng lúc nên chỉ hiện nguồn thay vì trả lời.
+- **Cái giá của sự thận trọng:** cổng ngoài phạm vi vẫn từ chối 18% câu dev có đáp án, đổi lại từ chối 100% câu ngoài phạm vi.
 
 ## 4. Cấu trúc dự án
 

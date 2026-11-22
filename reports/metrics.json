@@ -65,33 +65,33 @@
   },
   "decisions": {
     "có dấu": {
-      "Cao": 0.28,
-      "Trung bình": 0.28,
-      "Thấp": 0.26,
+      "Cao": 0.32,
+      "Trung bình": 0.3,
+      "Thấp": 0.2,
       "Từ chối": 0.18
     },
     "không dấu – thô": {
-      "Cao": 0.07,
-      "Trung bình": 0.02,
+      "Cao": 0.08,
+      "Trung bình": 0.01,
       "Thấp": 0.11,
       "Từ chối": 0.8
     },
     "không dấu – khôi phục": {
-      "Cao": 0.27,
-      "Trung bình": 0.22,
-      "Thấp": 0.29,
+      "Cao": 0.29,
+      "Trung bình": 0.24,
+      "Thấp": 0.25,
       "Từ chối": 0.22
     },
     "teencode – thô": {
-      "Cao": 0.24,
-      "Trung bình": 0.23,
-      "Thấp": 0.26,
+      "Cao": 0.28,
+      "Trung bình": 0.2,
+      "Thấp": 0.25,
       "Từ chối": 0.27
     },
     "teencode – chuẩn hóa": {
-      "Cao": 0.11,
-      "Trung bình": 0.06,
-      "Thấp": 0.65,
+      "Cao": 0.32,
+      "Trung bình": 0.29,
+      "Thấp": 0.21,
       "Từ chối": 0.18
     },
     "ngoài phạm vi (có dấu)": {
@@ -110,27 +110,27 @@
   "reliability": [
     {
       "level": "Cao",
-      "số câu": 97,
-      "độ tin cậy dự đoán TB": 0.8471442660318993,
-      "tỷ lệ tìm đúng thực tế": 0.7525773195876289
+      "số câu": 129,
+      "độ tin cậy dự đoán TB": 0.8282677949976041,
+      "tỷ lệ tìm đúng thực tế": 0.7906976744186046
     },
     {
       "level": "Trung bình",
-      "số câu": 81,
-      "độ tin cậy dự đoán TB": 0.5584170107199259,
-      "tỷ lệ tìm đúng thực tế": 0.7037037037037037
+      "số câu": 104,
+      "độ tin cậy dự đoán TB": 0.5639105371657777,
+      "tỷ lệ tìm đúng thực tế": 0.5865384615384616
     },
     {
       "level": "Thấp",
-      "số câu": 157,
-      "độ tin cậy dự đoán TB": 0.18504493705056518,
-      "tỷ lệ tìm đúng thực tế": 0.3821656050955414
+      "số câu": 102,
+      "độ tin cậy dự đoán TB": 0.30412278630736483,
+      "tỷ lệ tìm đúng thực tế": 0.2647058823529412
     }
   ],
   "calibration": {
-    "ECE": 0.18620292756171386,
-    "Brier": 0.23838829754624905,
-    "AUROC": 0.7038838475499093
+    "ECE": 0.12918964343982872,
+    "Brier": 0.1928735553572265,
+    "AUROC": 0.7688203266787659
   },
   "significance_R@5": {
     "có dấu": {
@@ -207,16 +207,16 @@
     "N_CAND": 10,
     "RERANK_MAX_LEN": 320,
     "OOS_TARGET": 0.95,
-    "N_TUNE": 100
+    "N_TUNE": 200
   },
   "latency_ms": {
-    "dense|có dấu": 125.82007646560669,
-    "v3|có dấu": 3.061187267303467,
-    "dense|không dấu – thô": 111.51920557022095,
-    "v3|không dấu – thô": 3.300926685333252,
-    "v3|không dấu – khôi phục": 663.0827212333679,
-    "dense|teencode – thô": 94.54395771026611,
-    "v3|teencode – thô": 3.164191246032715,
-    "v3|teencode – chuẩn hóa": 20.505599975585938
+    "dense|có dấu": 111.6806411743164,
+    "v3|có dấu": 2.9790735244750977,
+    "dense|không dấu – thô": 109.86791133880615,
+    "v3|không dấu – thô": 2.7567219734191895,
+    "v3|không dấu – khôi phục": 123.51470470428467,
+    "dense|teencode – thô": 104.54191446304321,
+    "v3|teencode – thô": 2.507622241973877,
+    "v3|teencode – chuẩn hóa": 20.173213481903076
   }
 }
