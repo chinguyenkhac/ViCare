@@ -1,0 +1,29 @@
+name: Deploy Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Có secret HF_TOKEN chưa?
+        id: check
+        run: echo "ok=${{ secrets.HF_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+      - if: steps.check.outputs.ok != 'true'
+        run: echo "::notice::Chưa có secret HF_TOKEN – bỏ qua deploy. Xem README mục 'Triển khai demo'."
+      - if: steps.check.outputs.ok == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: steps.check.outputs.ok == 'true'
+        run: pip install "huggingface_hub>=0.25"
+      - if: steps.check.outputs.ok == 'true'
+        name: Đẩy lên Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: python scripts/deploy_space.py

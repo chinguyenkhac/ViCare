@@ -1,0 +1,7 @@
+numpy>=1.26
+scipy>=1.11
+pandas>=2.0
+datasets>=3,<5
+sentence-transformers>=4,<6
+torch>=2.2
+gradio>=5,<7
