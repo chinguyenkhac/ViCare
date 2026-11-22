@@ -358,7 +358,6 @@ function render(){
   meta.appendChild(chip(STATUS[it.status] || it.status, "plain"));
   if (it.level) meta.appendChild(chip("Độ tin cậy " + it.level + " · " + Math.round(it.prob * 100) + "%", "t" + TIER[it.level]));
   if (it.emergency) meta.appendChild(chip("Cảnh báo cấp cứu", "t2"));
-  meta.appendChild(chip(it.seconds + " giây trên CPU", "plain"));
   $("out").innerHTML = it.html;
 }
 render();

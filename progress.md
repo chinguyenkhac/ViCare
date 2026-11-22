@@ -127,12 +127,12 @@ tests/            pytest
 - [x] P0.3 `confidence.py` + test
 - [x] `pipeline.py` (đầu ra hỗ trợ quyết định) + `safety.py` + test
 - [x] CI GitHub Actions
-- [ ] Notebook v3: chạy đánh giá, xuất HTML, `reports/metrics.json`
+- [x] Notebook v3: chạy đánh giá, xuất HTML, `reports/metrics.json`
 - [x] `app.py` (đã test giao diện Gradio 6 qua HTTP)
 - [ ] Deploy Hugging Face Space – **chờ token** (form bị hủy; đã làm sẵn workflow tự deploy khi có secret `HF_TOKEN`)
-- [ ] Trang GitHub Pages (demo tĩnh "Thử như giám khảo" + báo cáo HTML) – code xong, chờ số liệu; **bạn cần bật Pages 1 lần**
-- [ ] README (kết quả, cách chạy, kiến trúc, hạn chế, trích dẫn)
-- [ ] Cập nhật progress.md lần cuối
+- [x] Trang demo tĩnh "Thử như giám khảo" + báo cáo HTML (`docs/`) – **bạn cần bật GitHub Pages 1 lần** (xem mục 13)
+- [x] README (kết quả, cách chạy, kiến trúc, hạn chế, trích dẫn)
+- [x] Cập nhật progress.md lần cuối
 
 ## 10. Rủi ro & phương án dự phòng
 
@@ -148,7 +148,30 @@ tests/            pytest
 1. Nhập **access token Hugging Face (quyền Write)** qua form bảo mật khi được hỏi – không dán vào chat.
 2. Sau khi xong: xem demo, quay video / chụp ảnh, điền bài đăng.
 
-## 12. Nhật ký
+## 12. Kết quả cuối (100 câu dev của BTC, CPU, reranker 10 ứng viên)
+
+| Cách gõ | Recall@5 baseline → v3 | Bị từ chối (v2-style → v3) |
+|---|---|---|
+| Có dấu | 50% → **57%** (p = 0,09) | 18% → 18% |
+| Không dấu | 3% → **54%** (p < 0,0001) | 80% → **21%** |
+| Teencode + không dấu | 3% → **54%** (p < 0,0001) | 81% → **21%** |
+
+- Khôi phục dấu (trigram): 97,5% âm tiết, 71% câu đúng hoàn toàn (dev); 97,9% / 74,8% trên 400 câu validation ngoài dev.
+- Độ tin cậy theo mức (dự đoán / thực tế): Cao 83% / 79% · Trung bình 57% / 61% · Thấp 31% / 26%; ECE 0,119, AUROC 0,78.
+- Câu ngoài phạm vi: từ chối 100%. Cấp cứu (bộ tự viết): 100% cả có dấu lẫn không dấu, 0 báo động giả.
+
+## 13. Việc cần bạn làm (khoảng 5 phút)
+
+1. **Bật trang demo công khai (GitHub Pages):** repo → *Settings* → *Pages* → *Build and deployment* → *Source*: **Deploy from a branch** →
+   Branch **main**, thư mục **/docs** → *Save*. Sau ~1 phút: https://chinguyenkhac.github.io/ViCare/
+2. **Demo chat trực tiếp (Hugging Face Space):** tạo token **Write** tại huggingface.co → *Settings* → *Access Tokens*; trên GitHub repo →
+   *Settings* → *Secrets and variables* → *Actions* → *New repository secret* tên `HF_TOKEN`; rồi tab *Actions* →
+   *Deploy Hugging Face Space* → *Run workflow*. Space: `https://huggingface.co/spaces/<tên-tài-khoản>/ViCare-Safe`
+   (lần đầu build ~5–10 phút; trang Pages tự gắn link).
+3. (Tùy chọn) Chia sẻ trang demo trên claude.ai (nút *Share*) nếu muốn gửi link ngay.
+4. Quay video / chụp ảnh, điền bài đăng.
+
+## 14. Nhật ký
 
 - 13:02 – Chốt P0, viết progress.md.
 - 13:11 – Embedding 11.227 chunk xong (320 s, CPU) → `artifacts/` (float16, 8,6 MB).
@@ -163,3 +186,4 @@ tests/            pytest
 - 14:12 – Nâng khôi phục dấu lên **trigram** (Viterbi bậc 2): trên 400 câu validation ngoài dev, câu đúng hoàn toàn 71,3% → 74,8%; sửa được "con toi 2 tuoi" → "con tôi 2 tuổi". Chạy lại notebook (điểm reranker đã cache).
 - 14:20 – Lỗi teencode chưa hết: vài câu train bỏ dấu tình cờ có token như "dk" nên cờ teencode không hằng tuyệt đối → vẫn bị phóng đại. Bỏ hẳn đặc trưng này (không có dữ liệu học). Tăng tập tune lên 200 câu để hiệu chỉnh độ tin cậy tốt hơn; chạy lại notebook.
 - 14:45 – Chạy pipeline thật trên bộ ví dụ lộ thêm lỗi: câu **teencode + không dấu** bị từ chối 4/5 vì chuẩn hóa teencode chèn chữ có dấu ('lm j' → 'làm gì') nên bước khôi phục dấu bị bỏ qua. Sửa: quyết định khôi phục theo câu gốc, ngưỡng ≤ 25% âm tiết có dấu (câu thật có dấu luôn ≥ 30%); gom tiền xử lý về một hàm dùng chung cho notebook và demo; thêm biến thể 'teencode + không dấu' vào đánh giá. Ví dụ 'đau dạ dày' bị cổng từ chối nhầm → giữ lại trên trang demo với nhãn 'giới hạn đã biết'.
+- 14:55 – Lần chạy cuối (biến thể teencode + không dấu): R@5 3% → 54%, từ chối 81% → 21%; độ tin cậy ECE 0,119. Dựng trang demo (Pages + Artifact claude.ai), bấm thử OK, không lỗi JS, không tràn ngang.
