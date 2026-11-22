@@ -130,7 +130,7 @@ tests/            pytest
 - [ ] Notebook v3: chạy đánh giá, xuất HTML, `reports/metrics.json`
 - [x] `app.py` (đã test giao diện Gradio 6 qua HTTP)
 - [ ] Deploy Hugging Face Space – **chờ token** (form bị hủy; đã làm sẵn workflow tự deploy khi có secret `HF_TOKEN`)
-- [ ] Trang GitHub Pages (demo tĩnh "Thử như giám khảo" + báo cáo HTML)
+- [ ] Trang GitHub Pages (demo tĩnh "Thử như giám khảo" + báo cáo HTML) – code xong, chờ số liệu; **bạn cần bật Pages 1 lần**
 - [ ] README (kết quả, cách chạy, kiến trúc, hạn chế, trích dẫn)
 - [ ] Cập nhật progress.md lần cuối
 
@@ -157,3 +157,5 @@ tests/            pytest
 - 13:16 – Push lần đầu lên `main`; **CI xanh** trên GitHub (unit test + smoke test dữ liệu thật).
 - 13:17 – Form token Hugging Face bị hủy (bạn đi ngủ) → không tự mở lại; chuyển sang deploy qua GitHub Actions + trang GitHub Pages.
 - 13:20 – Test giao diện Gradio 6 bằng pipeline giả lập: OK.
+- 13:22 – API bật GitHub Pages bị proxy chặn → cần bật tay 1 lần (Settings → Pages → `main` / `/docs`). Trang demo tĩnh sẽ xuất bản thêm dạng Artifact trên claude.ai để xem được ngay.
+- 13:25 – Thiết kế lại trang demo (phong cách phiếu xét nghiệm, màu phân loại cho độ tin cậy, sáng/tối, điện thoại không tràn ngang); sửa định dạng danh sách trích dẫn/nguồn.
