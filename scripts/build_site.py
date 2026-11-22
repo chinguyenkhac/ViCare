@@ -10,6 +10,10 @@ from pathlib import Path
 
 import markdown
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from vicare_safe.confidence import norm_reliability  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 GITHUB = "https://github.com/chinguyenkhac/ViCare"
@@ -24,6 +28,7 @@ def build():
     m = json.loads((ROOT / "reports/metrics.json").read_text())
     ex = json.loads((ROOT / "reports/examples.json").read_text())
     r = m["retrieval"]
+    m["reliability"] = norm_reliability(m["reliability"])
 
     # ---------------- ví dụ (markdown → html)
     for e in ex:

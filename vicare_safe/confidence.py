@@ -112,3 +112,9 @@ def reliability_by_level(probs, labels) -> list[dict]:
                      "mean_conf": float(np.mean([probs[i] for i in idx])) if idx else float("nan"),
                      "actual_acc": float(np.mean([labels[i] for i in idx])) if idx else float("nan")})
     return rows
+
+
+def norm_reliability(rows: list[dict]) -> list[dict]:
+    """Chuẩn hóa khóa bảng độ tin cậy (notebook lưu tên cột tiếng Việt)."""
+    alias = {"số câu": "n", "độ tin cậy dự đoán TB": "mean_conf", "tỷ lệ tìm đúng thực tế": "actual_acc"}
+    return [{alias.get(k, k): v for k, v in r.items()} for r in rows]

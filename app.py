@@ -9,7 +9,7 @@ from pathlib import Path
 import gradio as gr
 import numpy as np
 
-from vicare_safe.confidence import ConfidenceModel
+from vicare_safe.confidence import ConfidenceModel, norm_reliability
 from vicare_safe.data import load_kb
 from vicare_safe.pipeline import ViCareSafe, build_restorer
 from vicare_safe.retrieval import HybridRetriever, Reranker, load_embedder
@@ -83,7 +83,7 @@ def results_markdown() -> str:
         rows.append(f"| {label} | {_pct(b['R@1'])} → **{_pct(v['R@1'])}** | {_pct(b['R@5'])} → **{_pct(v['R@5'])}** "
                     f"| {_pct(b['MRR@10'])} → **{_pct(v['MRR@10'])}** |")
     rel = "\n".join(f"| {x['level']} | {x['n']:.0f} | {_pct(x['mean_conf'])} | {_pct(x['actual_acc'])} |"
-                    for x in m["reliability"])
+                    for x in norm_reliability(m["reliability"]))
     dec = "\n".join(f"| {k} | " + " | ".join(_pct(v.get(c, 0.0)) for c in ["Cao", "Trung bình", "Thấp", "Từ chối"]) + " |"
                     for k, v in m["decisions"].items())
     s = m["safety"]
