@@ -3,144 +3,398 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ViCare Chat</title>
+<title>ViCare-Safe Chatbot</title>
+<meta name="description" content="Chatbot tra cứu sức khỏe tiếng Việt chạy ngay trong trình duyệt: hiểu câu không dấu và teencode, trích nguyên văn lời bác sĩ kèm độ tin cậy và nguồn.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--mute:#6b6b66;--line:#e3e2dd;--acc:#c0392b;--me:#1f5fbf;--warn:#fff4e5;--warnb:#e6a23c}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151514;--card:#1f1f1d;--ink:#ecebe6;--mute:#a09f98;--line:#33332f;--acc:#ff6b5a;--me:#6ea8ff;--warn:#3a2c15;--warnb:#e6a23c}}
+:root{
+  --bg:#f3f6f8;--surface:#ffffff;--surface-2:#eef3f6;--ink:#10212b;--muted:#4f6470;--line:#d7e1e7;
+  --accent:#0b6e8f;--accent-ink:#ffffff;--user:#0b6e8f;--user-ink:#ffffff;
+  --high:#1f7a4d;--high-bg:#e3f4ea;--mid:#8a5a00;--mid-bg:#fbefd6;--low:#b42318;--low-bg:#fde7e5;
+  --warn-bg:#fff4f2;--warn-line:#f3b6ad;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d171d;--surface:#132129;--surface-2:#1a2b35;--ink:#e6eef2;--muted:#9fb3bf;--line:#26404e;
+  --accent:#5cc8e8;--accent-ink:#06222c;--user:#1f5f78;--user-ink:#eaf7fc;
+  --high:#7ad7a3;--high-bg:#163626;--mid:#f2c46b;--mid-bg:#3a2d12;--low:#ff8f84;--low-bg:#3d1a17;
+  --warn-bg:#2a1a18;--warn-line:#6b3630;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d171d;--surface:#132129;--surface-2:#1a2b35;--ink:#e6eef2;--muted:#9fb3bf;--line:#26404e;
+  --accent:#5cc8e8;--accent-ink:#06222c;--user:#1f5f78;--user-ink:#eaf7fc;
+  --high:#7ad7a3;--high-bg:#163626;--mid:#f2c46b;--mid-bg:#3a2d12;--low:#ff8f84;--low-bg:#3d1a17;
+  --warn-bg:#2a1a18;--warn-line:#6b3630;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between}
-header a{color:var(--mute);font-size:14px}
-h1{font-size:18px;margin:0}
-main{max-width:820px;margin:0 auto;padding:16px;padding-bottom:120px}
-.msg{margin:12px 0;display:flex}
-.msg.me{justify-content:flex-end}
-.bub{max-width:92%;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}
-.me .bub{background:var(--me);color:#fff;border:none}
-.src{font-size:13px;color:var(--mute);margin-top:8px}
-.src a{color:var(--mute)}
-.alt{margin-top:10px;font-size:14px}
-.alt button{all:unset;cursor:pointer;color:var(--me);text-decoration:underline;display:block;margin:4px 0}
-.more{all:unset;cursor:pointer;color:var(--me);font-size:14px}
-.alert{background:var(--warn);border-left:4px solid var(--warnb);padding:8px 12px;border-radius:8px;margin-bottom:8px}
-.alert.red{border-color:var(--acc)}
-form{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px}
-.row{max-width:820px;margin:0 auto;display:flex;gap:8px}
-input{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-button.send{font:inherit;padding:10px 16px;border-radius:10px;border:none;background:var(--acc);color:#fff;cursor:pointer}
-button.send:disabled{opacity:.5}
-.hint{max-width:820px;margin:6px auto 0;font-size:12px;color:var(--mute)}
-.chips button{font:inherit;font-size:14px;margin:4px 6px 0 0;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 "Be Vietnam Pro",system-ui,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header{border-bottom:1px solid var(--line);background:var(--surface)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.brand{font:700 18px/1.2 Lexend,sans-serif;color:var(--ink);text-decoration:none}
+.brand span{color:var(--accent)}
+nav a{margin-left:14px;font-size:14px;text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--accent)}
+h1{font:700 clamp(24px,4vw,34px)/1.2 Lexend,sans-serif;margin:24px 0 6px}
+.lead{color:var(--muted);margin:0 0 14px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted)}
+.note b{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 0}
+.stat{background:var(--surface-2);border-radius:10px;padding:8px 10px;font-size:13px;color:var(--muted)}
+.stat strong{display:block;font:600 18px/1.3 Lexend,sans-serif;color:var(--ink)}
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:16px 0 8px;display:flex;flex-direction:column;min-height:420px}
+#log{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:65vh}
+.msg{max-width:100%;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--user);color:var(--user-ink);padding:8px 14px;border-radius:14px 14px 4px 14px;max-width:85%}
+.msg.bot{align-self:stretch;background:var(--surface-2);padding:12px 14px;border-radius:4px 14px 14px 14px}
+.msg.bot p{margin:0 0 8px}
+.msg.bot ul{margin:0 0 8px;padding-left:20px}
+.msg.bot li{margin:0 0 4px}
+.banner{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:8px 10px;font-weight:600;margin-bottom:8px}
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:600}
+.chip.Cao{background:var(--high-bg);color:var(--high)}
+.chip.Trung{background:var(--mid-bg);color:var(--mid)}
+.chip.Thấp{background:var(--low-bg);color:var(--low)}
+.small{font-size:13px;color:var(--muted)}
+.status{padding:10px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.bar{height:4px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+input[type=text]{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button{font:600 15px/1 "Be Vietnam Pro",sans-serif;border:0;border-radius:10px;padding:10px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button[disabled],input[disabled]{opacity:.55;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.examples button{background:var(--surface);color:var(--ink);border:1px solid var(--line);font-weight:500;font-size:14px;padding:6px 10px}
+footer{color:var(--muted);font-size:13px;padding:16px 0 32px}
 </style>
 </head>
 <body>
-<header><h1>🩺 ViCare Chat</h1><a href="./">← Trang chính</a></header>
-<main id="log">
-  <div class="msg"><div class="bub" id="status">Đang tải dữ liệu ViHealthQA từ Hugging Face (~8 MB, chỉ lần đầu)…</div></div>
+<header><div class="wrap">
+  <a class="brand" href="./"><span>✚</span> ViCare-Safe</a>
+  <nav><a href="./">Trang chính</a><a href="./#ketqua">Kết quả</a><a href="https://github.com/chinguyenkhac/ViCare">GitHub</a></nav>
+</div></header>
+<main class="wrap">
+  <h1>💬 Chatbot hỏi đáp sức khỏe</h1>
+  <p class="lead">Gõ câu hỏi tự do: có dấu, <b>không dấu</b> hay <b>teencode</b> đều được. ViCare trích <b>nguyên văn</b> lời bác sĩ trong kho ViHealthQA, kèm <b>độ tin cậy</b> và <b>nguồn</b>. Không chẩn đoán, không kê đơn. Cấp cứu: gọi <b>115</b>.</p>
+  <div class="note">
+    <b>Bản nhẹ chạy ngay trong trình duyệt của bạn</b>, không có máy chủ, không gửi câu hỏi đi đâu. Dữ liệu được tải thẳng từ Hugging Face.
+    Bản này dùng tìm kiếm BM25 + chuẩn hóa teencode + lớp an toàn. Nó <b>không có</b> mô hình vector, reranker và khôi phục dấu của bản đầy đủ,
+    nên tìm kém hơn: Recall@5 <b id="r5">–</b> so với 57% của bản đầy đủ (<a href="https://colab.research.google.com/github/chinguyenkhac/ViCare/blob/main/notebooks/ViCare_Chatbot_Colab.ipynb">chạy bản đầy đủ trên Colab</a>).
+    <div class="stats" id="stats"></div>
+  </div>
+  <section class="chat" aria-label="Khung chat">
+    <div id="log" aria-live="polite"></div>
+    <div class="status" id="status">Đang tải dữ liệu từ Hugging Face…<div class="bar"><i id="bar"></i></div></div>
+    <form id="form" autocomplete="off">
+      <input type="text" id="q" placeholder="Ví dụ: con toi 2 tuoi sot cao co giat phai lam sao" disabled aria-label="Câu hỏi">
+      <button id="send" disabled>Gửi</button>
+      <button type="button" class="ghost" id="clear" title="Xóa hội thoại">Xóa</button>
+    </form>
+  </section>
+  <div class="examples" id="examples"></div>
+  <footer>Dữ liệu: ViHealthQA (chỉ dùng cho nghiên cứu, thu thập khoảng 2019–2022). Thông tin chỉ mang tính tham khảo, không thay thế tư vấn của nhân viên y tế.
+  Không nhập thông tin cá nhân. Câu hỏi nối tiếp (“Vậy…”) được ghép với câu hỏi trước.</footer>
 </main>
-<form id="f">
-  <div class="row"><input id="q" placeholder="Hỏi về sức khỏe… (gõ có dấu hay không dấu đều được)" autocomplete="off" disabled>
-  <button class="send" id="b" disabled>Gửi</button></div>
-  <div class="hint">Trả lời trích nguyên văn bác sĩ từ ViHealthQA (Vinmec, VnExpress). Không thay thế tư vấn y tế. Cấp cứu: gọi 115.</div>
-</form>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script>
-const BASE = "https://huggingface.co/datasets/tarudesu/ViHealthQA/resolve/main/";
-const FILES = ["train.csv", "val.csv", "test.csv"];
-const PII = /(?<!\w)(?:\+?84|0)\d{9,10}(?!\d)|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
-const STOP = new Set("toi em anh chi ban bac si la va co khong bi thi cua cho minh nhu the nao gi duoc nay do o mot cac nhung voi de ma vay a a nhe a ah oi xin hoi cam on".split(" "));
-const EMERG = ["kho tho","dau nguc","ngat","bat tinh","co giat","dot quy","liet nua nguoi","meo mieng","chay mau nhieu","non ra mau","di ngoan ra mau","tu tu","muon chet","ngo doc","soc phan ve","sot cao co giat","khong tho"];
-const DOSE = ["lieu","uong may vien","bao nhieu mg","bao nhieu vien","ke don","mg/kg"];
-const $ = id => document.getElementById(id);
+<script type="module">
+import { parquetReadObjects } from "https://cdn.jsdelivr.net/npm/hyparquet@1.32.0/src/index.js";
 
-function fold(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d"); }
-function toks(s){
-  const w = fold(s).replace(/[^a-z0-9]+/g," ").trim().split(/\s+/).filter(Boolean);
-  const out = [];
-  for (let i=0;i<w.length;i++){
-    if (!STOP.has(w[i]) && w[i].length>1) out.push(w[i]);
-    if (i+1<w.length) out.push(w[i]+"_"+w[i+1]);   // song âm tiết: "viem_gan", "huyet_ap"
+const $ = (id) => document.getElementById(id);
+const W = "[\\p{L}\\p{N}_]";
+const WORD_RE = /[\p{L}\p{N}_]+/gu;
+let CFG, BOT = null;
+const history = [];
+
+// ---------------------------------------------------------------- văn bản (giống vicare_safe/text.py)
+const nfc = (s) => String(s).normalize("NFC");
+function fold(s) {
+  return String(s).toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/\p{Mn}/gu, "").normalize("NFC");
+}
+const words = (s) => fold(s).match(WORD_RE) || [];
+function bm25Tokens(text) {
+  const w = words(text), out = w.slice();
+  for (let i = 0; i + 1 < w.length; i++) out.push(w[i] + "_" + w[i + 1]);
+  return out;
+}
+const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const phraseRe = new Map();
+function matchAny(text, phrases) {
+  return phrases.some((p) => {
+    let re = phraseRe.get(p);
+    if (!re) { re = new RegExp(`(?<!${W})${esc(p)}(?!${W})`, "u"); phraseRe.set(p, re); }
+    return re.test(text);
+  });
+}
+const PII = /(?<![\p{L}\p{N}_])(?:\+?84|0)\d{9,10}(?!\d)|[\p{L}\p{N}_.+-]+@[\p{L}\p{N}_.-]+\.[A-Za-z]{2,}/gu;
+const maskPii = (s) => String(s).replace(PII, "[đã ẩn]");
+function normalizeTeencode(text) {
+  const orig = nfc(text);
+  const src = orig.replace(/(\p{L})\1{2,}/gu, "$1");
+  const toks = src.match(/[\p{L}\p{N}_]+|[^\p{L}\p{N}_\s]+|\s+/gu) || [];
+  let prev = "", changed = src !== orig;
+  const guard = new Set(CFG.letter_guard), out = [];
+  for (const tok of toks) {
+    const low = tok.toLowerCase();
+    const single = [...low].length === 1;
+    const isUpper = tok === tok.toUpperCase() && tok !== tok.toLowerCase();
+    if (Object.hasOwn(CFG.teencode, low) && !(single && (isUpper || guard.has(prev)))) {
+      const rep = CFG.teencode[low];
+      const cap = tok[0] !== tok[0].toLowerCase() && [...tok].length > 1;
+      out.push(cap ? rep[0].toUpperCase() + rep.slice(1) : rep);
+      changed = true;
+    } else out.push(tok);
+    if (/^[\p{L}\p{N}_]+$/u.test(tok)) prev = low;
   }
+  return [out.join(""), changed];
+}
+const isEmergency = (q) => matchAny(nfc(q).toLowerCase(), CFG.emerg_accent) || matchAny(fold(q), CFG.emerg_folded);
+const isDose = (q) => matchAny(nfc(q).toLowerCase(), CFG.dose_accent) || matchAny(fold(q), CFG.dose_folded);
+function isFollowup(q) {
+  const f = fold(q).trim();
+  return f.split(/\s+/).filter(Boolean).length <= 4 || CFG.followup_start.some((p) => f.startsWith(p)) || matchAny(f, CFG.followup_any);
+}
+const GREETING = /^(xin )?chào|cảm ơn|cám ơn|trân trọng|thân ái|chúc (bạn|anh|chị|em|cháu)|(bạn|anh|chị|em) (có thể )?(liên hệ|đặt lịch|gọi)|hotline|tổng đài|đặt lịch/i;
+function splitSentences(text, minWords = 4) {
+  let t = nfc(text).replace(/\r/g, "\n");
+  t = t.replace(/(?<=[a-zà-ỹ0-9)])\.(?=[A-ZĐÀ-Ỹ])/g, ". ");
+  return t.split(/(?<=[.!?…])\s+|\n+/).map((p) => p.replace(/^[ \-•*\t]+|[ \-•*\t]+$/g, ""))
+    .filter((p) => p.split(/\s+/).filter(Boolean).length >= minWords);
+}
+function chunkText(text, size, overlap) {
+  const w = text.split(/\s+/).filter(Boolean), parts = [];
+  let start = 0;
+  while (start < w.length) {
+    const end = Math.min(start + size, w.length);
+    parts.push(w.slice(start, end).join(" "));
+    if (end === w.length) break;
+    start = end - overlap;
+  }
+  return parts;
+}
+
+// ---------------------------------------------------------------- BM25 (giống vicare_safe/retrieval.py)
+function buildIndex(chunks, progress) {
+  const { k1, b, epsilon } = CFG.bm25;
+  const vocab = new Map(), df = [], docTok = [], docTf = [], dl = new Float64Array(chunks.length);
+  chunks.forEach((c, r) => {
+    const cnt = new Map();
+    const toks = bm25Tokens(c.text);
+    for (const t of toks) cnt.set(t, (cnt.get(t) || 0) + 1);
+    const ids = new Int32Array(cnt.size), tfs = new Float32Array(cnt.size);
+    let j = 0;
+    for (const [t, tf] of cnt) {
+      let id = vocab.get(t);
+      if (id === undefined) { id = df.length; vocab.set(t, id); df.push(0); }
+      df[id]++; ids[j] = id; tfs[j] = tf; j++;
+    }
+    docTok.push(ids); docTf.push(tfs); dl[r] = toks.length;
+    if (r % 2000 === 0) progress(r / chunks.length);
+  });
+  const n = chunks.length, V = df.length, idf = new Float64Array(V);
+  let sum = 0;
+  for (let i = 0; i < V; i++) { idf[i] = Math.log(n - df[i] + 0.5) - Math.log(df[i] + 0.5); sum += idf[i]; }
+  const floor = epsilon * (sum / V);
+  for (let i = 0; i < V; i++) if (idf[i] < 0) idf[i] = floor;
+  let avg = 0;
+  for (let r = 0; r < n; r++) avg += dl[r];
+  avg /= n;
+  const off = new Int32Array(V + 1);
+  for (let i = 0; i < V; i++) off[i + 1] = off[i] + df[i];
+  const pDoc = new Int32Array(off[V]), pW = new Float32Array(off[V]), fill = off.slice(0, V);
+  for (let r = 0; r < n; r++) {
+    const norm = k1 * (1 - b + (b * dl[r]) / avg), ids = docTok[r], tfs = docTf[r];
+    for (let j = 0; j < ids.length; j++) {
+      const id = ids[j], tf = tfs[j], p = fill[id]++;
+      pDoc[p] = r; pW[p] = (idf[id] * tf * (k1 + 1)) / (tf + norm);
+    }
+  }
+  return { vocab, idf, off, pDoc, pW, n };
+}
+function scores(ix, query) {
+  const s = new Float64Array(ix.n), cnt = new Map();
+  for (const t of bm25Tokens(query)) cnt.set(t, (cnt.get(t) || 0) + 1);
+  for (const [t, c] of cnt) {
+    const id = ix.vocab.get(t);
+    if (id === undefined) continue;
+    for (let p = ix.off[id]; p < ix.off[id + 1]; p++) s[ix.pDoc[p]] += c * ix.pW[p];
+  }
+  return s;
+}
+function docHits(query, k = 5, pool = 50) {
+  const s = scores(BOT.ix, query), idx = [];
+  for (let i = 0; i < s.length; i++) if (s[i] > 0) idx.push(i);
+  idx.sort((a, b) => s[b] - s[a] || a - b);
+  const hits = [], seen = new Set();
+  for (const i of idx.slice(0, pool)) {
+    const c = BOT.chunks[i];
+    if (seen.has(c.doc)) continue;
+    seen.add(c.doc);
+    hits.push({ doc: c.doc, score: s[i], chunk: i });
+    if (hits.length === k) break;
+  }
+  return hits;
+}
+
+// ---------------------------------------------------------------- độ tin cậy + cổng (tham số từ scripts/build_browser_bot.py)
+function proba(m, x) {
+  let z = m.w[m.w.length - 1];
+  for (let i = 0; i < x.length; i++) z += ((x[i] - m.mu[i]) / m.sd[i]) * m.w[i];
+  return 1 / (1 + Math.exp(-z));
+}
+function feats(hits, q) {
+  const s1 = hits[0]?.score || 0, s2 = hits[1]?.score || 0;
+  return [Math.log1p(s1), s1 > 0 ? (s1 - s2) / s1 : 0, s1 / Math.max(1, bm25Tokens(q).length)];
+}
+function gateFeats(hits, q) {
+  const w = words(q), big = [];
+  for (let i = 0; i + 1 < w.length; i++) big.push(w[i] + "_" + w[i + 1]);
+  const bigfrac = big.filter((t) => BOT.ix.vocab.has(t)).length / Math.max(1, big.length);
+  const oov = w.filter((t) => !BOT.ix.vocab.has(t)).length / Math.max(1, w.length);
+  return [Math.log1p(hits[0]?.score || 0), bigfrac, oov];
+}
+
+// ---------------------------------------------------------------- trích bằng chứng
+function evidence(q, hits) {
+  const qt = new Set(bm25Tokens(q));
+  const out = [];
+  hits.slice(0, 3).forEach((h, n) => {
+    const text = BOT.docs[h.doc].text;
+    let best = null;
+    for (const s of splitSentences(text).filter((x) => !GREETING.test(x.trim().slice(0, 60))).slice(0, 8)) {
+      let sc = 0;
+      for (const t of new Set(bm25Tokens(s))) if (qt.has(t)) { const id = BOT.ix.vocab.get(t); if (id !== undefined) sc += BOT.ix.idf[id]; }
+      if (!best || sc > best.sc) best = { sc, s };
+    }
+    if (best && best.sc > 0) out.push({ n: n + 1, s: best.s });
+  });
   return out;
 }
 
-let DOCS = [], IDX = new Map(), DL = [], AVG = 0, N = 0;
-function build(rows){
-  const seen = new Map();
-  for (const r of rows){
-    const a = String(r.answer||"").replace(PII,"[đã ẩn]").trim(), q = String(r.question||"").trim();
-    if (!a) continue;
-    if (seen.has(a)) { DOCS[seen.get(a)].q += " " + q; continue; }
-    seen.set(a, DOCS.length); DOCS.push({q, a, link: r.link||""});
-  }
-  N = DOCS.length; let tot = 0;
-  DOCS.forEach((d,i) => {
-    // câu hỏi gốc nhân trọng số 2 – khớp câu hỏi người dùng tốt hơn
-    const t = toks(d.q).concat(toks(d.q), toks(d.a.slice(0,1500)));
-    DL[i] = t.length; tot += t.length;
-    const tf = new Map(); t.forEach(x => tf.set(x,(tf.get(x)||0)+1));
-    tf.forEach((c,x) => { let p = IDX.get(x); if(!p) IDX.set(x,p=[]); p.push([i,c]); });
-  });
-  AVG = tot / N;
+// ---------------------------------------------------------------- trả lời
+function decide(question) {
+  const original = String(question).trim();
+  if (!original) return null;
+  let q = original, followup = false;
+  if (history.length && isFollowup(original)) { q = history[history.length - 1] + " " + original; followup = true; }
+  const [norm, changed] = normalizeTeencode(q);
+  const emergency = isEmergency(original) || isEmergency(norm);
+  const hits = docHits(norm);
+  const res = { original, understood: norm, followup, normalized: changed, emergency, hits };
+  if (isDose(original) || isDose(norm)) return { ...res, status: "dose" };
+  if (!hits.length || proba(CFG.gate, gateFeats(hits, norm)) < CFG.tau) return { ...res, status: "oos" };
+  const p = proba(CFG.model, feats(hits, norm));
+  const level = p >= CFG.levels[0] ? "Cao" : p >= CFG.levels[1] ? "Trung bình" : "Thấp";
+  return { ...res, status: "answer", p, level, ev: evidence(norm, hits) };
 }
-function search(query, k=4){
-  const qt = [...new Set(toks(query))], sc = new Float64Array(N), k1=1.4, b=0.75;
-  for (const t of qt){
-    const p = IDX.get(t); if(!p) continue;
-    const idf = Math.log(1 + (N - p.length + .5)/(p.length + .5)) * (t.includes("_") ? 1.5 : 1);
-    for (const [i,c] of p) sc[i] += idf * c*(k1+1)/(c + k1*(1-b+b*DL[i]/AVG));
-  }
-  const top = [];
-  for (let i=0;i<N;i++) if (sc[i]>0){ top.push(i); }
-  top.sort((x,y)=>sc[y]-sc[x]);
-  return top.slice(0,k).map(i => ({...DOCS[i], s: sc[i]}));
+const h = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const md = (s) => h(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+function sources(hits, n = 3) {
+  return "<ul>" + hits.slice(0, n).map((x, i) => {
+    const u = BOT.docs[x.doc].url;
+    return `<li>[${i + 1}] ${/^https?:\/\//.test(u) ? `<a href="${h(u)}" target="_blank" rel="noopener">${h(u)}</a>` : h(u || "(không có link)")}</li>`;
+  }).join("") + "</ul>";
 }
+function render(r, ms) {
+  const parts = [];
+  if (r.emergency) parts.push(`<div class="banner">${md(CFG.emergency_msg)}</div>`);
+  const notes = [r.followup && "ghép với câu hỏi trước", r.normalized && "chuẩn hóa viết tắt"].filter(Boolean);
+  if (notes.length) parts.push(`<p>🔎 <strong>ViCare hiểu câu hỏi là:</strong> “${h(r.understood)}” <em class="small">(${notes.join(", ")})</em></p>`);
+  if (r.status === "dose") {
+    parts.push(`<p>${md(CFG.dose_msg)}</p><p><strong>📚 Tài liệu liên quan để đọc thêm:</strong></p>${sources(r.hits)}`);
+  } else if (r.status === "oos") {
+    parts.push(`<p>Tôi không tìm thấy thông tin này trong kho tài liệu sức khỏe.</p><p><strong>➡️ Gợi ý:</strong> câu hỏi có vẻ nằm ngoài phạm vi kho tài liệu; hãy hỏi trực tiếp bác sĩ hoặc cơ sở y tế, hoặc diễn đạt lại cụ thể hơn (triệu chứng, thời gian, tuổi).</p>`);
+  } else {
+    const cls = r.level === "Trung bình" ? "Trung" : r.level;
+    const icon = { Cao: "🟢", "Trung bình": "🟡", "Thấp": "🔴" }[r.level];
+    parts.push(`<p>📊 <strong>Độ tin cậy:</strong> <span class="chip ${cls}">${icon} ${r.level} (${Math.round(r.p * 100)}%)</span> <em class="small">khả năng tài liệu phù hợp nằm trong các nguồn dưới đây, không phải độ chính xác y khoa</em></p>`);
+    const ev = r.ev.length ? "<ul>" + r.ev.map((e) => `<li>«${h(e.s)}» [${e.n}]</li>`).join("") + "</ul>" : "";
+    if (r.level === "Thấp") {
+      parts.push(`<p>🔴 <strong>Độ tin cậy THẤP: ViCare không đưa ra câu trả lời.</strong> Các đoạn dưới đây <em>có thể</em> liên quan, hãy tự đọc kỹ nguồn:</p>${ev}`);
+      parts.push(`<p>➡️ <strong>Bước tiếp theo gợi ý:</strong> hỏi trực tiếp bác sĩ; có thể diễn đạt lại câu hỏi cụ thể hơn (triệu chứng, thời gian, tuổi).</p>`);
+    } else {
+      parts.push(`<p>📌 <strong>Thông tin tham khảo</strong> <em class="small">(trích nguyên văn từ tài liệu bác sĩ)</em>:</p>${ev}`);
+      parts.push(`<p>➡️ <strong>Bước tiếp theo gợi ý:</strong> ${r.level === "Cao" ? "đọc kỹ nguồn [1]; nếu triệu chứng kéo dài hoặc nặng lên, hãy đi khám." : "độ tin cậy chưa cao, hãy đối chiếu các nguồn bên dưới và hỏi thêm nhân viên y tế."}</p>`);
+    }
+    parts.push(`<p><strong>📚 Nguồn:</strong></p>${sources(r.hits)}`);
+  }
+  parts.push(`<p class="small">⚠️ Thông tin chỉ mang tính tham khảo, không thay thế tư vấn của nhân viên y tế. Dữ liệu thu thập khoảng 2019–2022. · ⏱ ${ms} ms · bản nhẹ trong trình duyệt</p>`);
+  return parts.join("");
+}
+function add(cls, html) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerHTML = html;
+  $("log").appendChild(d);
+  d.scrollIntoView({ block: "nearest" });
+  return d;
+}
+function ask(text) {
+  const q = String(text).trim();
+  if (!q || !BOT) return;
+  add("user", h(q));
+  const t0 = performance.now();
+  const r = decide(q);
+  add("bot", render(r, Math.round(performance.now() - t0)));
+  if (r.status !== "oos") history.push(r.followup ? r.understood : q);
+}
+window.vicareAsk = (q) => { const r = decide(q); return r && { status: r.status, level: r.level, p: r.p, understood: r.understood, emergency: r.emergency, top: r.hits.map((x) => [x.doc, Math.round(x.score * 1e4) / 1e4]) }; };
 
-function add(cls, node){
-  const m = document.createElement("div"); m.className = "msg " + cls;
-  const b = document.createElement("div"); b.className = "bub";
-  typeof node === "string" ? b.textContent = node : b.appendChild(node);
-  m.appendChild(b); $("log").appendChild(m); m.scrollIntoView({behavior:"smooth", block:"start"}); return b;
-}
-function answerNode(query, hits){
-  const f = document.createElement("div"), fq = fold(query);
-  if (EMERG.some(k => fq.includes(k))){ const a = document.createElement("div"); a.className="alert red"; a.textContent = "⚠️ Dấu hiệu có thể nguy hiểm: hãy gọi 115 hoặc đến cơ sở y tế gần nhất ngay."; f.appendChild(a); }
-  if (DOSE.some(k => fq.includes(k))){ const a = document.createElement("div"); a.className="alert"; a.textContent = "ViCare không đưa liều thuốc/kê đơn. Hãy hỏi bác sĩ hoặc dược sĩ."; f.appendChild(a); }
-  if (!hits.length || hits[0].s < 6){
-    const p = document.createElement("div"); p.textContent = "Mình chưa tìm thấy câu trả lời phù hợp trong dữ liệu. Bạn thử mô tả rõ hơn (bệnh, triệu chứng, đối tượng)?"; f.appendChild(p); return f;
+// ---------------------------------------------------------------- nạp dữ liệu
+const setBar = (f) => { $("bar").style.width = Math.round(f * 100) + "%"; };
+async function load() {
+  CFG = await (await fetch("bot/config.json")).json();
+  const ev = CFG.eval.dev, pct = (x) => Math.round(x * 100) + "%";
+  $("r5").textContent = pct(ev["có dấu"]["R@5"]);
+  const rel = CFG.eval.reliability.Cao;
+  $("stats").innerHTML = [
+    [pct(ev["không dấu"]["R@5"]), "Recall@5 khi gõ không dấu (bản gốc BTC: 3%)"],
+    [pct(rel.actual), "tìm đúng tài liệu khi báo độ tin cậy Cao"],
+    [pct(CFG.eval.oos_test_refused), "câu ngoài phạm vi bị từ chối"],
+    [pct(ev["có dấu"].decisions["Từ chối"]), "câu hợp lệ bị từ chối nhầm"],
+  ].map(([a, b]) => `<div class="stat"><strong>${a}</strong>${b}</div>`).join("");
+  const list = await (await fetch(CFG.parquet_api)).json();
+  const files = CFG.splits.map((sp) => list.default[sp][0]);
+  const rows = [];
+  for (let i = 0; i < files.length; i++) {
+    $("status").firstChild.textContent = `Đang tải dữ liệu từ Hugging Face (${i + 1}/${files.length})…`;
+    const buf = await (await fetch(files[i])).arrayBuffer();
+    const part = await parquetReadObjects({ file: buf, columns: ["id", "answer", "link"] });
+    for (const r of part) rows.push([CFG.splits[i], r]);
+    setBar(((i + 1) / files.length) * 0.5);
   }
-  const h = hits[0], body = document.createElement("div"), LIM = 700;
-  const lead = document.createElement("div"); lead.style.cssText="font-size:13px;color:var(--mute);margin-bottom:6px";
-  lead.textContent = "Câu hỏi gần nhất: “" + h.q.split(/(?<=[?.!])\s/)[0].slice(0,160) + "”"; f.appendChild(lead);
-  body.textContent = h.a.length > LIM ? h.a.slice(0,LIM) + "…" : h.a; f.appendChild(body);
-  if (h.a.length > LIM){ const m = document.createElement("button"); m.className="more"; m.textContent="Xem đầy đủ";
-    m.onclick = () => { body.textContent = h.a; m.remove(); }; f.appendChild(m); }
-  if (h.link){ const s = document.createElement("div"); s.className="src"; s.append("Nguồn: "); const a = document.createElement("a"); a.href=h.link; a.target="_blank"; a.rel="noopener"; a.textContent = new URL(h.link).hostname; s.appendChild(a); f.appendChild(s); }
-  if (hits.length > 1){ const al = document.createElement("div"); al.className="alt"; al.append("Câu hỏi liên quan:");
-    hits.slice(1).forEach(x => { const b = document.createElement("button"); b.textContent = x.q.slice(0,120) + (x.q.length>120?"…":""); b.onclick = () => ask(x.q.slice(0,300)); al.appendChild(b); });
-    f.appendChild(al); }
-  return f;
+  const text2id = new Map(), docs = [], chunks = [];
+  for (const [sp, r] of rows) {
+    const text = maskPii(r.answer || "").trim();
+    if (!text || text2id.has(text)) continue;
+    const key = `${sp}-${String(r.id)}`;
+    text2id.set(text, docs.length);
+    docs.push({ key, url: String(r.link || ""), text });
+  }
+  docs.forEach((d, di) => chunkText(d.text, CFG.chunk.size, CFG.chunk.overlap).forEach((t) => chunks.push({ doc: di, text: t })));
+  $("status").firstChild.textContent = "Đang dựng chỉ mục tìm kiếm…";
+  await new Promise((r) => setTimeout(r, 30));
+  const ix = buildIndex(chunks, (f) => setBar(0.5 + f * 0.5));
+  BOT = { docs, chunks, ix };
+  window.vicareReady = { docs: docs.length, chunks: chunks.length, docKey: (i) => docs[i].key };
+  setBar(1);
+  $("status").textContent = `Sẵn sàng · ${docs.length.toLocaleString("vi-VN")} câu trả lời của bác sĩ · ${chunks.length.toLocaleString("vi-VN")} đoạn`;
+  $("q").disabled = $("send").disabled = false;
+  $("q").focus();
+  add("bot", "<p>Xin chào! Hãy gõ câu hỏi về sức khỏe. Bạn có thể gõ không dấu hoặc viết tắt, ví dụ <em>“con toi 2 tuoi sot cao co giat phai lam sao”</em>.</p>");
 }
-function ask(q){
-  q = q.trim(); if (!q) return;
-  add("me", q);
-  add("", answerNode(q, search(q)));
-}
-
-(async () => {
-  try{
-    const texts = await Promise.all(FILES.map(f => fetch(BASE+f).then(r => { if(!r.ok) throw new Error(f+" "+r.status); return r.text(); })));
-    const rows = texts.flatMap(t => Papa.parse(t, {header:true, skipEmptyLines:true}).data);
-    build(rows);
-    const st = $("status"); st.textContent = `Sẵn sàng – ${N.toLocaleString("vi")} câu trả lời của bác sĩ. Thử hỏi:`;
-    const c = document.createElement("div"); c.className="chips";
-    ["Viêm gan B có lây qua đường ăn uống không?","tre bi sot co giat phai lam sao","Bà bầu bị tiểu đường thai kỳ nên ăn gì?","dau bung ben phai co phai ruot thua"].forEach(x => {
-      const b = document.createElement("button"); b.type="button"; b.textContent=x; b.onclick=()=>ask(x); c.appendChild(b); });
-    st.appendChild(c);
-    $("q").disabled = $("b").disabled = false; $("q").focus();
-  }catch(e){ $("status").textContent = "Không tải được dữ liệu từ Hugging Face: " + e.message + ". Tải lại trang để thử lại."; }
-})();
-$("f").addEventListener("submit", e => { e.preventDefault(); const v = $("q").value; $("q").value=""; ask(v); });
+const EX = ["con toi 2 tuoi sot cao co giat phai lam sao", "tre bi ho co dom keo dai phai lam sao", "mang thai 3 thang dau nen an gi",
+  "bị sốt xuất huyết khi nào cần nhập viện", "Trẻ 15kg uống paracetamol liều bao nhiêu?", "Giá vàng hôm nay bao nhiêu?"];
+$("examples").innerHTML = EX.map((e) => `<button type="button">${h(e)}</button>`).join("");
+$("examples").addEventListener("click", (e) => { if (e.target.tagName === "BUTTON" && BOT) ask(e.target.textContent); });
+$("form").addEventListener("submit", (e) => { e.preventDefault(); ask($("q").value); $("q").value = ""; });
+$("clear").addEventListener("click", () => { history.length = 0; $("log").innerHTML = ""; });
+load().catch((err) => {
+  console.error(err);
+  $("status").textContent = "Không tải được dữ liệu từ Hugging Face (" + err.message + "). Hãy tải lại trang hoặc dùng bản Colab.";
+});
 </script>
 </body>
 </html>
