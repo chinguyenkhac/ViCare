@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ViCare Chat</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--mute:#6b6b66;--line:#e3e2dd;--acc:#c0392b;--me:#1f5fbf;--warn:#fff4e5;--warnb:#e6a23c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151514;--card:#1f1f1d;--ink:#ecebe6;--mute:#a09f98;--line:#33332f;--acc:#ff6b5a;--me:#6ea8ff;--warn:#3a2c15;--warnb:#e6a23c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between}
+header a{color:var(--mute);font-size:14px}
+h1{font-size:18px;margin:0}
+main{max-width:820px;margin:0 auto;padding:16px;padding-bottom:120px}
+.msg{margin:12px 0;display:flex}
+.msg.me{justify-content:flex-end}
+.bub{max-width:92%;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}
+.me .bub{background:var(--me);color:#fff;border:none}
+.src{font-size:13px;color:var(--mute);margin-top:8px}
+.src a{color:var(--mute)}
+.alt{margin-top:10px;font-size:14px}
+.alt button{all:unset;cursor:pointer;color:var(--me);text-decoration:underline;display:block;margin:4px 0}
+.more{all:unset;cursor:pointer;color:var(--me);font-size:14px}
+.alert{background:var(--warn);border-left:4px solid var(--warnb);padding:8px 12px;border-radius:8px;margin-bottom:8px}
+.alert.red{border-color:var(--acc)}
+form{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px}
+.row{max-width:820px;margin:0 auto;display:flex;gap:8px}
+input{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+button.send{font:inherit;padding:10px 16px;border-radius:10px;border:none;background:var(--acc);color:#fff;cursor:pointer}
+button.send:disabled{opacity:.5}
+.hint{max-width:820px;margin:6px auto 0;font-size:12px;color:var(--mute)}
+.chips button{font:inherit;font-size:14px;margin:4px 6px 0 0;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+</style>
+</head>
+<body>
+<header><h1>🩺 ViCare Chat</h1><a href="./">← Trang chính</a></header>
+<main id="log">
+  <div class="msg"><div class="bub" id="status">Đang tải dữ liệu ViHealthQA từ Hugging Face (~8 MB, chỉ lần đầu)…</div></div>
+</main>
+<form id="f">
+  <div class="row"><input id="q" placeholder="Hỏi về sức khỏe… (gõ có dấu hay không dấu đều được)" autocomplete="off" disabled>
+  <button class="send" id="b" disabled>Gửi</button></div>
+  <div class="hint">Trả lời trích nguyên văn bác sĩ từ ViHealthQA (Vinmec, VnExpress). Không thay thế tư vấn y tế. Cấp cứu: gọi 115.</div>
+</form>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const BASE = "https://huggingface.co/datasets/tarudesu/ViHealthQA/resolve/main/";
+const FILES = ["train.csv", "val.csv", "test.csv"];
+const PII = /(?<!\w)(?:\+?84|0)\d{9,10}(?!\d)|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
+const STOP = new Set("toi em anh chi ban bac si la va co khong bi thi cua cho minh nhu the nao gi duoc nay do o mot cac nhung voi de ma vay a a nhe a ah oi xin hoi cam on".split(" "));
+const EMERG = ["kho tho","dau nguc","ngat","bat tinh","co giat","dot quy","liet nua nguoi","meo mieng","chay mau nhieu","non ra mau","di ngoan ra mau","tu tu","muon chet","ngo doc","soc phan ve","sot cao co giat","khong tho"];
+const DOSE = ["lieu","uong may vien","bao nhieu mg","bao nhieu vien","ke don","mg/kg"];
+const $ = id => document.getElementById(id);
+
+function fold(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d"); }
+function toks(s){
+  const w = fold(s).replace(/[^a-z0-9]+/g," ").trim().split(/\s+/).filter(Boolean);
+  const out = [];
+  for (let i=0;i<w.length;i++){
+    if (!STOP.has(w[i]) && w[i].length>1) out.push(w[i]);
+    if (i+1<w.length) out.push(w[i]+"_"+w[i+1]);   // song âm tiết: "viem_gan", "huyet_ap"
+  }
+  return out;
+}
+
+let DOCS = [], IDX = new Map(), DL = [], AVG = 0, N = 0;
+function build(rows){
+  const seen = new Map();
+  for (const r of rows){
+    const a = String(r.answer||"").replace(PII,"[đã ẩn]").trim(), q = String(r.question||"").trim();
+    if (!a) continue;
+    if (seen.has(a)) { DOCS[seen.get(a)].q += " " + q; continue; }
+    seen.set(a, DOCS.length); DOCS.push({q, a, link: r.link||""});
+  }
+  N = DOCS.length; let tot = 0;
+  DOCS.forEach((d,i) => {
+    // câu hỏi gốc nhân trọng số 2 – khớp câu hỏi người dùng tốt hơn
+    const t = toks(d.q).concat(toks(d.q), toks(d.a.slice(0,1500)));
+    DL[i] = t.length; tot += t.length;
+    const tf = new Map(); t.forEach(x => tf.set(x,(tf.get(x)||0)+1));
+    tf.forEach((c,x) => { let p = IDX.get(x); if(!p) IDX.set(x,p=[]); p.push([i,c]); });
+  });
+  AVG = tot / N;
+}
+function search(query, k=4){
+  const qt = [...new Set(toks(query))], sc = new Float64Array(N), k1=1.4, b=0.75;
+  for (const t of qt){
+    const p = IDX.get(t); if(!p) continue;
+    const idf = Math.log(1 + (N - p.length + .5)/(p.length + .5)) * (t.includes("_") ? 1.5 : 1);
+    for (const [i,c] of p) sc[i] += idf * c*(k1+1)/(c + k1*(1-b+b*DL[i]/AVG));
+  }
+  const top = [];
+  for (let i=0;i<N;i++) if (sc[i]>0){ top.push(i); }
+  top.sort((x,y)=>sc[y]-sc[x]);
+  return top.slice(0,k).map(i => ({...DOCS[i], s: sc[i]}));
+}
+
+function add(cls, node){
+  const m = document.createElement("div"); m.className = "msg " + cls;
+  const b = document.createElement("div"); b.className = "bub";
+  typeof node === "string" ? b.textContent = node : b.appendChild(node);
+  m.appendChild(b); $("log").appendChild(m); m.scrollIntoView({behavior:"smooth", block:"start"}); return b;
+}
+function answerNode(query, hits){
+  const f = document.createElement("div"), fq = fold(query);
+  if (EMERG.some(k => fq.includes(k))){ const a = document.createElement("div"); a.className="alert red"; a.textContent = "⚠️ Dấu hiệu có thể nguy hiểm: hãy gọi 115 hoặc đến cơ sở y tế gần nhất ngay."; f.appendChild(a); }
+  if (DOSE.some(k => fq.includes(k))){ const a = document.createElement("div"); a.className="alert"; a.textContent = "ViCare không đưa liều thuốc/kê đơn. Hãy hỏi bác sĩ hoặc dược sĩ."; f.appendChild(a); }
+  if (!hits.length || hits[0].s < 6){
+    const p = document.createElement("div"); p.textContent = "Mình chưa tìm thấy câu trả lời phù hợp trong dữ liệu. Bạn thử mô tả rõ hơn (bệnh, triệu chứng, đối tượng)?"; f.appendChild(p); return f;
+  }
+  const h = hits[0], body = document.createElement("div"), LIM = 700;
+  const lead = document.createElement("div"); lead.style.cssText="font-size:13px;color:var(--mute);margin-bottom:6px";
+  lead.textContent = "Câu hỏi gần nhất: “" + h.q.split(/(?<=[?.!])\s/)[0].slice(0,160) + "”"; f.appendChild(lead);
+  body.textContent = h.a.length > LIM ? h.a.slice(0,LIM) + "…" : h.a; f.appendChild(body);
+  if (h.a.length > LIM){ const m = document.createElement("button"); m.className="more"; m.textContent="Xem đầy đủ";
+    m.onclick = () => { body.textContent = h.a; m.remove(); }; f.appendChild(m); }
+  if (h.link){ const s = document.createElement("div"); s.className="src"; s.append("Nguồn: "); const a = document.createElement("a"); a.href=h.link; a.target="_blank"; a.rel="noopener"; a.textContent = new URL(h.link).hostname; s.appendChild(a); f.appendChild(s); }
+  if (hits.length > 1){ const al = document.createElement("div"); al.className="alt"; al.append("Câu hỏi liên quan:");
+    hits.slice(1).forEach(x => { const b = document.createElement("button"); b.textContent = x.q.slice(0,120) + (x.q.length>120?"…":""); b.onclick = () => ask(x.q.slice(0,300)); al.appendChild(b); });
+    f.appendChild(al); }
+  return f;
+}
+function ask(q){
+  q = q.trim(); if (!q) return;
+  add("me", q);
+  add("", answerNode(q, search(q)));
+}
+
+(async () => {
+  try{
+    const texts = await Promise.all(FILES.map(f => fetch(BASE+f).then(r => { if(!r.ok) throw new Error(f+" "+r.status); return r.text(); })));
+    const rows = texts.flatMap(t => Papa.parse(t, {header:true, skipEmptyLines:true}).data);
+    build(rows);
+    const st = $("status"); st.textContent = `Sẵn sàng – ${N.toLocaleString("vi")} câu trả lời của bác sĩ. Thử hỏi:`;
+    const c = document.createElement("div"); c.className="chips";
+    ["Viêm gan B có lây qua đường ăn uống không?","tre bi sot co giat phai lam sao","Bà bầu bị tiểu đường thai kỳ nên ăn gì?","dau bung ben phai co phai ruot thua"].forEach(x => {
+      const b = document.createElement("button"); b.type="button"; b.textContent=x; b.onclick=()=>ask(x); c.appendChild(b); });
+    st.appendChild(c);
+    $("q").disabled = $("b").disabled = false; $("q").focus();
+  }catch(e){ $("status").textContent = "Không tải được dữ liệu từ Hugging Face: " + e.message + ". Tải lại trang để thử lại."; }
+})();
+$("f").addEventListener("submit", e => { e.preventDefault(); const v = $("q").value; $("q").value=""; ask(v); });
+</script>
+</body>
+</html>
