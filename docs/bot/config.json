@@ -1,0 +1,282 @@
+{
+ "dataset": "tarudesu/ViHealthQA",
+ "parquet_api": "https://huggingface.co/api/datasets/tarudesu/ViHealthQA/parquet",
+ "splits": [
+  "train",
+  "validation",
+  "test"
+ ],
+ "chunk": {
+  "size": 200,
+  "overlap": 40
+ },
+ "bm25": {
+  "k1": 1.5,
+  "b": 0.75,
+  "epsilon": 0.25
+ },
+ "teencode": {
+  "ko": "không",
+  "hok": "không",
+  "hông": "không",
+  "khum": "không",
+  "kh": "không",
+  "hk": "không",
+  "kg": "không",
+  "k": "không",
+  "j": "gì",
+  "ji": "gì",
+  "dc": "được",
+  "đc": "được",
+  "dk": "được",
+  "đk": "được",
+  "dcj": "được",
+  "bs": "bác sĩ",
+  "bsi": "bác sĩ",
+  "bv": "bệnh viện",
+  "vs": "với",
+  "z": "vậy",
+  "zậy": "vậy",
+  "dzậy": "vậy",
+  "zay": "vậy",
+  "ntn": "như thế nào",
+  "mn": "mọi người",
+  "mk": "mình",
+  "mik": "mình",
+  "mh": "mình",
+  "r": "rồi",
+  "cx": "cũng",
+  "cg": "cũng",
+  "lm": "làm",
+  "trc": "trước",
+  "ns": "nói",
+  "sk": "sức khỏe",
+  "xn": "xét nghiệm",
+  "tks": "cảm ơn",
+  "thks": "cảm ơn"
+ },
+ "letter_guard": [
+  "cúm",
+  "gan",
+  "kali",
+  "máu",
+  "mũi",
+  "nhóm",
+  "rút",
+  "tuýp",
+  "type",
+  "vi",
+  "virus",
+  "vitamin"
+ ],
+ "emerg_accent": [
+  "đau ngực",
+  "khó thở",
+  "co giật",
+  "bất tỉnh",
+  "ngất",
+  "chảy máu nhiều",
+  "đột quỵ",
+  "ngộ độc",
+  "đau thắt ngực",
+  "không thở được",
+  "thở rít",
+  "xỉu",
+  "hôn mê",
+  "không tỉnh",
+  "lả đi",
+  "ra máu nhiều",
+  "nôn ra máu",
+  "ói ra máu",
+  "méo miệng",
+  "yếu nửa người",
+  "liệt nửa người",
+  "nói khó",
+  "uống nhầm",
+  "sốc phản vệ",
+  "tím tái",
+  "đuối nước",
+  "điện giật",
+  "bỏng nước sôi",
+  "bỏng nặng",
+  "tự tử",
+  "tự sát",
+  "muốn chết",
+  "tự làm hại",
+  "sưng phù"
+ ],
+ "emerg_folded": [
+  "bat tinh",
+  "bong do nuoc soi",
+  "bong nuoc soi",
+  "chay mau nhieu",
+  "co giat",
+  "dau nguc",
+  "dau that nguc",
+  "dien giat",
+  "dot quy",
+  "duoi nuoc",
+  "hon me",
+  "kho tho",
+  "khong tho duoc",
+  "khong tinh",
+  "liet nua nguoi",
+  "meo mieng",
+  "muon chet",
+  "muon tu tu",
+  "ngat di",
+  "ngat xiu",
+  "ngo doc",
+  "noi kho",
+  "non ra mau",
+  "oi ra mau",
+  "ra mau nhieu",
+  "soc phan ve",
+  "sung phu",
+  "tho rit",
+  "tim tai",
+  "tu lam hai",
+  "tu sat",
+  "uong nham",
+  "yeu nua nguoi"
+ ],
+ "dose_accent": [
+  "liều",
+  "bao nhiêu mg",
+  "mấy viên",
+  "bao nhiêu viên",
+  "kê đơn",
+  "kê toa",
+  "đơn thuốc"
+ ],
+ "dose_folded": [
+  "lieu luong",
+  "lieu dung",
+  "lieu thuoc",
+  "bao nhieu mg",
+  "may vien",
+  "bao nhieu vien",
+  "ke don",
+  "ke toa",
+  "don thuoc"
+ ],
+ "followup_start": [
+  "vay ",
+  "the con",
+  "the thi",
+  "nhu vay",
+  "neu vay",
+  "con truong hop",
+  "con tre",
+  "con nguoi"
+ ],
+ "followup_any": [
+  "truong hop nay",
+  "truong hop do",
+  "thi sao",
+  "benh nay",
+  "thuoc nay",
+  "cai do",
+  "dieu do",
+  "tinh trang nay",
+  "tinh trang do"
+ ],
+ "emergency_msg": "🚨 **Nếu có dấu hiệu nguy hiểm hoặc cấp cứu, hãy gọi 115 (tại Việt Nam) hoặc đến cơ sở y tế gần nhất NGAY.**",
+ "dose_msg": "ViCare-Safe **không đưa liều dùng hoặc kê đơn thuốc**. Liều phụ thuộc cân nặng, bệnh nền và thuốc đang dùng – hãy hỏi bác sĩ hoặc dược sĩ. Bạn có thể đọc các tài liệu liên quan bên dưới để chuẩn bị câu hỏi.",
+ "model": {
+  "mu": [
+   4.161906106232365,
+   0.1426703466096809,
+   2.0846475817314722
+  ],
+  "sd": [
+   0.44974034613883906,
+   0.15102543908608507,
+   0.9409518856888737
+  ],
+  "w": [
+   0.41682145782074354,
+   1.18130928390869,
+   0.546062691799041,
+   0.11482809304023912
+  ]
+ },
+ "gate": {
+  "mu": [
+   4.107036872636423,
+   0.9104660817594122,
+   0.006001450688081904
+  ],
+  "sd": [
+   0.4882889918819812,
+   0.12431033932994622,
+   0.027013412029800375
+  ],
+  "w": [
+   1.7362909100364952,
+   0.8699766704416921,
+   -0.3489106830910701,
+   4.194320737752524
+  ]
+ },
+ "tau": 0.891609955391627,
+ "levels": [
+  0.7,
+  0.4
+ ],
+ "eval": {
+  "dev": {
+   "có dấu": {
+    "R@1": 0.34,
+    "R@5": 0.43,
+    "decisions": {
+     "Cao": 0.16,
+     "Trung bình": 0.22,
+     "Thấp": 0.56,
+     "Từ chối": 0.06
+    }
+   },
+   "không dấu": {
+    "R@1": 0.34,
+    "R@5": 0.43,
+    "decisions": {
+     "Cao": 0.16,
+     "Trung bình": 0.22,
+     "Thấp": 0.56,
+     "Từ chối": 0.06
+    }
+   },
+   "teencode + không dấu": {
+    "R@1": 0.34,
+    "R@5": 0.43,
+    "decisions": {
+     "Cao": 0.16,
+     "Trung bình": 0.22,
+     "Thấp": 0.56,
+     "Từ chối": 0.06
+    }
+   }
+  },
+  "oos_test_refused": 0.8,
+  "reliability": {
+   "Cao": {
+    "n": 48,
+    "actual": 0.875
+   },
+   "Trung bình": {
+    "n": 66,
+    "actual": 0.36363636363636365
+   },
+   "Thấp": {
+    "n": 168,
+    "actual": 0.32142857142857145
+   }
+  },
+  "n_dev": 100,
+  "n_tune": 200
+ },
+ "corpus": {
+  "docs": 9895,
+  "chunks": 11227
+ }
+}
