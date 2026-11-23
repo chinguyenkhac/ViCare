@@ -225,6 +225,7 @@ footer .wrap{padding-block:28px 40px}
 
 BODY = r"""<header class="top"><div class="wrap">
   <a class="mark" href="#"><i aria-hidden="true"></i>ViCare-Safe</a>
+  <a class="l" href="chat.html">Chat</a>
   <a class="l" href="#thu">Thử demo</a>
   <a class="l" href="#ketqua">Kết quả</a>
   <a class="l" href="#cachlam">Cách hoạt động</a>
@@ -237,7 +238,8 @@ BODY = r"""<header class="top"><div class="wrap">
   <p class="lead">ViCare-Safe là trợ lý <strong>hỗ trợ quyết định</strong>: trích nguyên văn lời bác sĩ trong kho tài liệu, kèm
   <strong>độ tin cậy</strong>, <strong>bằng chứng</strong> và <strong>nguồn</strong>. Không chẩn đoán, không kê đơn, và nói rõ khi chưa đủ căn cứ.</p>
   <div class="btns">
-    <a class="btn primary" id="live" href="#thu">Thử demo bên dưới</a>
+    <a class="btn primary" href="chat.html">💬 Chat hỏi đáp ngay</a>
+    <a class="btn" id="live" href="#thu">Thử demo bên dưới</a>
     <a class="btn" href="__COLAB__">Mở notebook trên Colab</a>
     <a class="btn" href="report.html">Báo cáo đánh giá</a>
     <a class="btn" href="__GITHUB__">Mã nguồn</a>
