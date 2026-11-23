@@ -59,6 +59,7 @@ h1{font:700 clamp(24px,4vw,34px)/1.2 Lexend,sans-serif;margin:24px 0 6px}
 .chip.Trung{background:var(--mid-bg);color:var(--mid)}
 .chip.Thấp{background:var(--low-bg);color:var(--low)}
 .small{font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--muted);font-size:14px;margin-bottom:6px}
 .status{padding:10px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bar{height:4px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:6px}
 .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
@@ -310,12 +311,19 @@ function render(r, ms) {
     const cls = r.level === "Trung bình" ? "Trung" : r.level;
     const icon = { Cao: "🟢", "Trung bình": "🟡", "Thấp": "🔴" }[r.level];
     parts.push(`<p>📊 <strong>Độ tin cậy:</strong> <span class="chip ${cls}">${icon} ${r.level} (${Math.round(r.p * 100)}%)</span> <em class="small">khả năng tài liệu phù hợp nằm trong các nguồn dưới đây, không phải độ chính xác y khoa</em></p>`);
+    const top = BOT.docs[r.hits[0].doc];
+    const sents = splitSentences(top.text).filter((x) => !GREETING.test(x.trim().slice(0, 60)));
+    let lead = ""; for (const x of sents) { if (lead.length > 550) break; lead += (lead ? " " : "") + x.trim(); }
+    const rest = top.text.length > lead.length + 80;
+    const ans = `<div class="ans">${top.q ? `<p class="small">💬 Câu hỏi tương tự trong dữ liệu: <em>“${h(top.q.length > 220 ? top.q.slice(0, 220) + "…" : top.q)}”</em></p>` : ""}`
+      + `<p><strong>🩺 Bác sĩ trả lời [1]:</strong> ${h(lead || top.text.slice(0, 600))}</p>`
+      + (rest ? `<details><summary>Xem đầy đủ câu trả lời</summary><p>${h(top.text)}</p></details>` : "") + "</div>";
     const ev = r.ev.length ? "<ul>" + r.ev.map((e) => `<li>«${h(e.s)}» [${e.n}]</li>`).join("") + "</ul>" : "";
     if (r.level === "Thấp") {
-      parts.push(`<p>🔴 <strong>Độ tin cậy THẤP: ViCare không đưa ra câu trả lời.</strong> Các đoạn dưới đây <em>có thể</em> liên quan, hãy tự đọc kỹ nguồn:</p>${ev}`);
+      parts.push(`<p>🔴 <strong>Độ tin cậy thấp:</strong> câu trả lời dưới đây có thể chưa khớp hoàn toàn với trường hợp của bạn, hãy đọc kỹ nguồn.</p>${ans}`);
       parts.push(`<p>➡️ <strong>Bước tiếp theo gợi ý:</strong> hỏi trực tiếp bác sĩ; có thể diễn đạt lại câu hỏi cụ thể hơn (triệu chứng, thời gian, tuổi).</p>`);
     } else {
-      parts.push(`<p>📌 <strong>Thông tin tham khảo</strong> <em class="small">(trích nguyên văn từ tài liệu bác sĩ)</em>:</p>${ev}`);
+      parts.push(ans);
       parts.push(`<p>➡️ <strong>Bước tiếp theo gợi ý:</strong> ${r.level === "Cao" ? "đọc kỹ nguồn [1]; nếu triệu chứng kéo dài hoặc nặng lên, hãy đi khám." : "độ tin cậy chưa cao, hãy đối chiếu các nguồn bên dưới và hỏi thêm nhân viên y tế."}</p>`);
     }
     parts.push(`<p><strong>📚 Nguồn:</strong></p>${sources(r.hits)}`);
@@ -361,7 +369,7 @@ async function load() {
   for (let i = 0; i < files.length; i++) {
     $("status").firstChild.textContent = `Đang tải dữ liệu từ Hugging Face (${i + 1}/${files.length})…`;
     const buf = await (await fetch(files[i])).arrayBuffer();
-    const part = await parquetReadObjects({ file: buf, columns: ["id", "answer", "link"] });
+    const part = await parquetReadObjects({ file: buf, columns: ["id", "question", "answer", "link"] });
     for (const r of part) rows.push([CFG.splits[i], r]);
     setBar(((i + 1) / files.length) * 0.5);
   }
@@ -371,7 +379,7 @@ async function load() {
     if (!text || text2id.has(text)) continue;
     const key = `${sp}-${String(r.id)}`;
     text2id.set(text, docs.length);
-    docs.push({ key, url: String(r.link || ""), text });
+    docs.push({ key, url: String(r.link || ""), text, q: String(r.question || "").trim() });
   }
   docs.forEach((d, di) => chunkText(d.text, CFG.chunk.size, CFG.chunk.overlap).forEach((t) => chunks.push({ doc: di, text: t })));
   $("status").firstChild.textContent = "Đang dựng chỉ mục tìm kiếm…";
