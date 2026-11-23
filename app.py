@@ -33,8 +33,8 @@ def build_app() -> ViCareSafe:
     if ids != [c["id"] for c in kb.chunks]:
         raise RuntimeError("Embedding tính sẵn không khớp kho tài liệu – chạy lại scripts/build_embeddings.py")
     conf, meta = ConfidenceModel.load(ROOT / "artifacts/confidence.json")
-    retr = HybridRetriever(kb.chunks, emb, load_embedder("cpu"),
-                           Reranker(max_length=int(meta.get("rerank_max_len", 320)), device="cpu"))
+    retr = HybridRetriever(kb.chunks, emb, load_embedder(),
+                           Reranker(max_length=int(meta.get("rerank_max_len", 320))))
     app = ViCareSafe(retr, build_restorer(kb), conf, tau=float(meta["tau"]), n_cand=int(meta.get("n_cand", 10)))
     print(f"ViCare-Safe sẵn sàng sau {time.time() - t0:.0f}s", flush=True)
     return app
@@ -160,7 +160,7 @@ with gr.Blocks(title="ViCare-Safe") as demo:
         "# 🩺 ViCare-Safe – Tra cứu sức khỏe tiếng Việt có độ tin cậy\n"
         "Hiểu cả câu **không dấu** và **teencode** · trích **nguyên văn** lời bác sĩ kèm **bằng chứng** & **nguồn** · "
         "**không chẩn đoán, không kê đơn**. Cấp cứu: gọi **115**.\n\n"
-        f"[GitHub]({GITHUB}) · [Notebook đánh giá]({COLAB}) · Mỗi câu mất ~5–15 giây trên CPU miễn phí."
+        f"[GitHub]({GITHUB}) · [Notebook đánh giá]({COLAB}) · Dùng GPU nếu có (nhanh hơn nhiều); trên CPU mỗi câu mất ~10–60 giây."
     )
     with gr.Tab("💬 Hỏi đáp"):
         gr.ChatInterface(fn=chat, examples=EXAMPLES, cache_examples=False,

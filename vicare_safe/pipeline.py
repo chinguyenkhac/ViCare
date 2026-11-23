@@ -42,7 +42,7 @@ def preprocess_query(text: str, restorer: DiacriticRestorer) -> tuple[str, bool,
 
 def is_followup(question: str) -> bool:
     f = fold(question).strip()
-    return len(f.split()) <= 6 or f.startswith(FOLLOWUP_START) or match_any(f, FOLLOWUP_ANY)
+    return len(f.split()) <= 4 or f.startswith(FOLLOWUP_START) or match_any(f, FOLLOWUP_ANY)
 
 
 @dataclass

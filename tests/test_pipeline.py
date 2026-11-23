@@ -46,6 +46,7 @@ def test_answer_has_confidence_evidence_sources(chunks, embedder):
 def test_followup():
     assert is_followup("Vậy trường hợp này có nguy hiểm không?")
     assert not is_followup("Con tôi bị sốt thế nào thì cần đi viện?")
+    assert not is_followup("Hôm nay giá vàng bao nhiêu?")
 
 
 def test_teencode_plus_unaccented_is_restored():
