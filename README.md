@@ -13,7 +13,7 @@ Phát triển từ notebook RAG **ViCare** của Ban tổ chức (dữ liệu Vi
 > ⚠️ Sản phẩm minh họa học thuật – **không** chẩn đoán, **không** kê đơn, không thay thế nhân viên y tế. Cấp cứu: gọi **115**.
 
 - 🌐 **Trang demo (ai cũng xem được):** https://chinguyenkhac.github.io/ViCare/ – chọn câu hỏi, đổi cách gõ có dấu / không dấu / teencode, xem đầu ra thật của hệ thống.
-- 💬 **Demo chat trực tiếp:** Hugging Face Space – xem mục [Triển khai demo](#triển-khai-demo-hugging-face-space).
+- 💬 **Chatbot hỏi đáp (gõ câu tự do):** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/chinguyenkhac/ViCare/blob/main/notebooks/ViCare_Chatbot_Colab.ipynb) – bấm *Run all*, đợi 2–4 phút, gõ câu hỏi ngay trong notebook (miễn phí, CPU/GPU Colab đều được). Muốn có link cố định: [triển khai Hugging Face Space](#triển-khai-demo-hugging-face-space) (Hugging Face hiện yêu cầu gói PRO cho Space Gradio).
 - 📓 **Notebook đánh giá đã chạy:** [`notebooks/ViCare_Safe_v3.ipynb`](notebooks/ViCare_Safe_v3.ipynb) · bản HTML: [`reports/ViCare_Safe_v3.html`](reports/ViCare_Safe_v3.html)
 
 ---
